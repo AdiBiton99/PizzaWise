@@ -16,7 +16,8 @@ COPY packages/shared packages/shared
 COPY apps/api apps/api
 RUN pnpm --filter @pizzawise/shared build \
   && pnpm --filter @pizzawise/api build \
-  && pnpm --filter @pizzawise/api --prod deploy /out
+  && pnpm --filter @pizzawise/api --prod deploy /out \
+  && cp -r apps/api/dist /out/dist
 
 FROM node:22-bookworm-slim AS runtime
 ENV NODE_ENV=production
