@@ -1,0 +1,15 @@
+{
+  "name": "pizzawise",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter @pizzawise/web --filter @pizzawise/api dev",
+    "build": "pnpm --recursive --if-present build",
+    "test": "pnpm --recursive --if-present test"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "packageManager": "pnpm@11.25.0",
+  "type": "module"
+}

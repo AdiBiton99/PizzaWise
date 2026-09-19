@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/.turbo
+.git
+.cursor
+**/.env
+**/.env.*
+!**/.env.example
+**/coverage
+**/*.log
+**/.DS_Store
+Thumbs.db
+apps/web/test-results
+**/playwright-report

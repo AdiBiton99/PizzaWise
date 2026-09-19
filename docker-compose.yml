@@ -1,0 +1,26 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: ${DATABASE_URL}
+      PIZZERIA_API_BASE_URL: ${PIZZERIA_API_BASE_URL}
+      PIZZERIA_API_KEY: ${PIZZERIA_API_KEY}
+      GEOAPIFY_API_KEY: ${GEOAPIFY_API_KEY}
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      API_UPSTREAM: http://api:3000
+    depends_on:
+      - api
