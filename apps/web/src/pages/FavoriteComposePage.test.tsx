@@ -81,6 +81,10 @@ describe('FavoriteComposePage', () => {
 
     expect(await screen.findByDisplayValue('Weeknight')).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Your pizza' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Size' }))
+    expect((screen.getByLabelText('Medium') as HTMLInputElement).checked).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Ready' }))
+    expect(screen.getByRole('heading', { name: 'Your pizza' })).toBeTruthy()
     expect(screen.queryByLabelText('Replace with current pizza')).toBeNull()
 
     fireEvent.change(screen.getByLabelText('Favorite name'), {

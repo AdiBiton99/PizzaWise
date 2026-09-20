@@ -16,13 +16,17 @@ type BuilderStage = 'size' | 'crust' | 'sauce' | 'toppings' | 'complete'
 
 interface PizzaBuilderProps {
   readonly initialConfiguration?: PizzaConfiguration | null
+  readonly allowStepNavigation?: boolean
   readonly onConfigurationCompleted: (
     configuration: PizzaConfiguration | null
   ) => void
 }
 
+const STAGES = ['size', 'crust', 'sauce', 'toppings', 'complete'] as const
+
 export function PizzaBuilder({
   initialConfiguration = null,
+  allowStepNavigation = false,
   onConfigurationCompleted
 }: PizzaBuilderProps) {
   const t = useTranslate()
@@ -72,6 +76,10 @@ export function PizzaBuilder({
       return
     }
 
+    completePizza()
+  }
+
+  function completePizza() {
     if (sizeTag === null || crustTag === null || sauceTag === null) {
       return
     }
@@ -89,6 +97,39 @@ export function PizzaBuilder({
     setToppingTags(sortedToppings)
     onConfigurationCompleted(configuration)
     setStage('complete')
+  }
+
+  function canJumpTo (target: BuilderStage): boolean {
+    if (!allowStepNavigation) {
+      return false
+    }
+
+    if (target === 'size') {
+      return true
+    }
+
+    if (target === 'crust') {
+      return sizeTag !== null
+    }
+
+    if (target === 'sauce') {
+      return sizeTag !== null && crustTag !== null
+    }
+
+    return sizeTag !== null && crustTag !== null && sauceTag !== null
+  }
+
+  function jumpTo (target: BuilderStage) {
+    if (!canJumpTo(target) || target === stage) {
+      return
+    }
+
+    if (target === 'complete') {
+      completePizza()
+      return
+    }
+
+    setStage(target)
   }
 
   function handleBack() {
@@ -133,17 +174,31 @@ export function PizzaBuilder({
     <section className="pizza-builder" aria-labelledby="pizza-builder-heading">
       <h2 id="pizza-builder-heading">{t('builder.heading')}</h2>
       <ol className="builder-stepper" aria-label={t('builder.stepsAria')}>
-        {(['size', 'crust', 'sauce', 'toppings', 'complete'] as const).map(
-          (item, index) => (
+        {STAGES.map((item, index) => {
+          const jumpable = canJumpTo(item)
+          const className = [
+            stage === item ? 'is-current' : undefined,
+            jumpable ? 'is-jumpable' : undefined
+          ]
+            .filter((value) => value !== undefined)
+            .join(' ')
+
+          return (
             <li
               key={item}
               aria-current={stage === item ? 'step' : undefined}
-              className={stage === item ? 'is-current' : undefined}
+              className={className === '' ? undefined : className}
             >
-              {stepLabels[index]}
+              {jumpable ? (
+                <button type="button" onClick={() => jumpTo(item)}>
+                  {stepLabels[index]}
+                </button>
+              ) : (
+                stepLabels[index]
+              )}
             </li>
           )
-        )}
+        })}
       </ol>
 
       {stage === 'size' && (

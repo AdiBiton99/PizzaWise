@@ -115,6 +115,46 @@ describe('PizzaBuilder', () => {
     expect(onConfigurationCompleted).toHaveBeenLastCalledWith(null)
     expect(screen.getByLabelText('Mushroom')).toBeTruthy()
   })
+
+  it('does not make steps clickable in the guided new-pizza flow', () => {
+    render(<PizzaBuilder onConfigurationCompleted={vi.fn()} />)
+
+    expect(screen.queryByRole('button', { name: 'Size' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Ready' })).toBeNull()
+    expect(screen.getByRole('list', { name: 'Builder steps' })).toBeTruthy()
+  })
+
+  it('jumps between completed steps while editing without losing selections', () => {
+    const onConfigurationCompleted = vi.fn()
+    const pizza = {
+      sizeTag: 'medium' as const,
+      crustTag: 'thin' as const,
+      sauceTag: 'tomato' as const,
+      toppingTags: ['mushroom']
+    }
+
+    render(
+      <PizzaBuilder
+        initialConfiguration={pizza}
+        allowStepNavigation
+        onConfigurationCompleted={onConfigurationCompleted}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Size' }))
+    expect((screen.getByLabelText('Medium') as HTMLInputElement).checked).toBe(true)
+    expect(onConfigurationCompleted).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toppings' }))
+    expect((screen.getByLabelText('Mushroom') as HTMLInputElement).checked).toBe(
+      true
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ready' }))
+    expect(screen.getByText('Your pizza')).toBeTruthy()
+    expect(screen.getByText('Mushroom')).toBeTruthy()
+    expect(onConfigurationCompleted).toHaveBeenCalledWith(pizza)
+  })
 })
 
 function completeThroughSauce() {

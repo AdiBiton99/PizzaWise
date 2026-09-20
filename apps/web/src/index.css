@@ -371,10 +371,43 @@ textarea {
   font-weight: 700;
 }
 
+.builder-stepper li.is-jumpable {
+  padding: 0;
+}
+
+.builder-stepper li.is-jumpable button {
+  display: block;
+  margin: 0;
+  padding: 0.4rem 0.85rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.builder-stepper li.is-jumpable:hover,
+.builder-stepper li.is-jumpable:focus-within {
+  border-color: var(--tomato);
+  box-shadow: 0 0 0 2px rgba(196, 71, 44, 0.18);
+}
+
+.builder-stepper li.is-jumpable button:focus-visible {
+  outline: 2px solid var(--tomato);
+  outline-offset: 2px;
+}
+
 .builder-stepper li.is-current {
   background: var(--ink);
   color: var(--cream);
   border-color: var(--ink);
+}
+
+.builder-stepper li.is-current.is-jumpable:hover,
+.builder-stepper li.is-current.is-jumpable:focus-within {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px rgba(43, 26, 18, 0.2);
 }
 
 .workflow-progress {

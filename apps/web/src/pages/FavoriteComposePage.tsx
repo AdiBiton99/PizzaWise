@@ -147,6 +147,7 @@ export function FavoriteComposePage() {
             <PizzaBuilder
               key={builderKey}
               initialConfiguration={existing?.configuration ?? null}
+              allowStepNavigation={isEdit}
               onConfigurationCompleted={setPizza}
             />
           </div>
