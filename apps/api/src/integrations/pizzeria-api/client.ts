@@ -59,7 +59,8 @@ export class PizzeriaApiClient {
 
   async getPizzerias (): Promise<Pizzeria[]> {
     const response = await this.#getJson('pizzerias', {
-      operation: 'getPizzerias'
+      operation: 'getPizzerias',
+      retry: true
     })
     return normalizePizzeriasResponse(response)
   }
@@ -76,7 +77,8 @@ export class PizzeriaApiClient {
       `pizzerias/${encodedPizzeriaId}/menu`,
       {
         operation: 'getMenu',
-        pizzeriaId
+        pizzeriaId,
+        retry: false
       }
     )
     return normalizeMenuSemanticTags(normalizeMenuResponse(response))
@@ -87,8 +89,13 @@ export class PizzeriaApiClient {
     context: {
       readonly operation: 'getPizzerias' | 'getMenu'
       readonly pizzeriaId?: string
+      readonly retry: boolean
     }
   ): Promise<unknown> {
+    if (!context.retry) {
+      return await this.#requestJson(path)
+    }
+
     return await withUpstreamRetries({
       sleep: this.#sleep,
       isRetryable: isRetryablePizzeriaError,

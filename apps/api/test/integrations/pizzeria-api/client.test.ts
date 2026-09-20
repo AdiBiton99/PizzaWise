@@ -172,7 +172,7 @@ describe('PizzeriaApiClient requests', () => {
       assert.match(error.message, /HTTP 500/)
       return true
     })
-    assert.equal(attempts, 3)
+    assert.equal(attempts, 1)
   })
 
   test('retries network failures and then succeeds', async () => {

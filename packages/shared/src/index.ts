@@ -1,5 +1,6 @@
 export type {
   ComparisonCosts,
+  ComparisonDebugStats,
   ComparisonPriority,
   Crust,
   CurrencyCode,

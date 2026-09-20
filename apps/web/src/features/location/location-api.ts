@@ -1,4 +1,4 @@
-import type { LocationSearchResult } from '@pizzawise/shared'
+import type { LocationSearchResult, UserLocation } from '@pizzawise/shared'
 
 export type LocationSearchErrorCode =
   | 'invalid-response'
@@ -18,6 +18,10 @@ export class LocationSearchError extends Error {
 export type SearchLocations = (
   query: string
 ) => Promise<readonly LocationSearchResult[]>
+
+export type ReverseGeocode = (
+  location: UserLocation
+) => Promise<string | null>
 
 type HttpFetch = (
   input: string | URL | Request,
@@ -80,6 +84,93 @@ export async function searchLocations (
   return body.results
 }
 
+export async function reverseGeocode (
+  location: UserLocation,
+  fetch: HttpFetch = globalThis.fetch
+): Promise<string | null> {
+  let response: Response
+
+  try {
+    response = await fetch('/api/locations/reverse', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify(location)
+    })
+  } catch {
+    throw new LocationSearchError(
+      'request-failed',
+      'Location lookup could not be reached.'
+    )
+  }
+
+  if (response.status === 429) {
+    throw new LocationSearchError(
+      'rate-limited',
+      'Location search is temporarily rate limited.'
+    )
+  }
+
+  if (!response.ok) {
+    throw new LocationSearchError(
+      'request-failed',
+      'Location lookup failed.'
+    )
+  }
+
+  let body: unknown
+  try {
+    body = await response.json()
+  } catch {
+    throw new LocationSearchError(
+      'invalid-response',
+      'Location lookup returned invalid JSON.'
+    )
+  }
+
+  if (!isReverseGeocodeResponse(body)) {
+    throw new LocationSearchError(
+      'invalid-response',
+      'Location lookup returned an invalid response.'
+    )
+  }
+
+  return body.result?.label ?? null
+}
+
+function isLocationSearchResult (
+  result: unknown
+): result is LocationSearchResult {
+  if (
+    typeof result !== 'object' ||
+    result === null ||
+    !('label' in result) ||
+    typeof result.label !== 'string' ||
+    result.label.length === 0 ||
+    !('location' in result) ||
+    typeof result.location !== 'object' ||
+    result.location === null
+  ) {
+    return false
+  }
+
+  const location = result.location
+  return (
+    'latitude' in location &&
+    typeof location.latitude === 'number' &&
+    Number.isFinite(location.latitude) &&
+    location.latitude >= -90 &&
+    location.latitude <= 90 &&
+    'longitude' in location &&
+    typeof location.longitude === 'number' &&
+    Number.isFinite(location.longitude) &&
+    location.longitude >= -180 &&
+    location.longitude <= 180
+  )
+}
+
 function isLocationSearchResponse (
   value: unknown
 ): value is { results: LocationSearchResult[] } {
@@ -92,32 +183,15 @@ function isLocationSearchResponse (
     return false
   }
 
-  return value.results.every((result) => {
-    if (
-      typeof result !== 'object' ||
-      result === null ||
-      !('label' in result) ||
-      typeof result.label !== 'string' ||
-      result.label.length === 0 ||
-      !('location' in result) ||
-      typeof result.location !== 'object' ||
-      result.location === null
-    ) {
-      return false
-    }
+  return value.results.every(isLocationSearchResult)
+}
 
-    const location = result.location
-    return (
-      'latitude' in location &&
-      typeof location.latitude === 'number' &&
-      Number.isFinite(location.latitude) &&
-      location.latitude >= -90 &&
-      location.latitude <= 90 &&
-      'longitude' in location &&
-      typeof location.longitude === 'number' &&
-      Number.isFinite(location.longitude) &&
-      location.longitude >= -180 &&
-      location.longitude <= 180
-    )
-  })
+function isReverseGeocodeResponse (
+  value: unknown
+): value is { result: LocationSearchResult | null } {
+  if (typeof value !== 'object' || value === null || !('result' in value)) {
+    return false
+  }
+
+  return value.result === null || isLocationSearchResult(value.result)
 }

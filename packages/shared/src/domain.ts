@@ -193,11 +193,23 @@ export interface RankedPizza {
 }
 
 /**
+ * Temporary debug counts for a comparison request.
+ */
+export interface ComparisonDebugStats {
+  readonly consideredPizzeriaCount: number
+  readonly checkedPizzeriaCount: number
+  readonly recoveredPizzeriaCount: number
+  readonly uncheckedPizzeriaCount: number
+  readonly matchedPizzeriaCount: number
+}
+
+/**
  * Ranked matched pizzas for one comparison request.
  */
 export interface PizzaComparison {
   readonly ranked: readonly RankedPizza[]
   readonly uncheckedPizzeriaCount: number
+  readonly debug?: ComparisonDebugStats
 }
 
 /**

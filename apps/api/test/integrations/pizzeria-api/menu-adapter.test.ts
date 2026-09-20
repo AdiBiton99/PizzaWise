@@ -98,6 +98,78 @@ describe('normalizeMenuResponse', () => {
     })
   })
 
+  test('defaults a missing cents menu currency to ILS', () => {
+    const result = normalizeMenuResponse({
+      pizzeriaId: 'p19',
+      priceUnit: 'cents',
+      menu: {
+        sizes: [{ id: 's', label: 'Piccola', priceCents: 4500 }],
+        crusts: [{ id: 'pan', label: 'Pan', priceCents: 0 }],
+        sauces: ['tomato'],
+        toppings: [{ id: 'm1', name: 'onion', priceCents: 340 }]
+      }
+    })
+
+    assert.equal(result.currency, 'ILS')
+    assert.deepEqual(result.sizes[0]?.price, {
+      amountMinor: 4500,
+      currency: 'ILS'
+    })
+  })
+
+  test('defaults a missing decimal menu currency to ILS', () => {
+    const result = normalizeMenuResponse({
+      pizzeria_id: 'p40',
+      price_unit: 'decimal',
+      sizes: [{ id: 'sm', label: 'S', price: 32 }],
+      crusts: [{ id: 'sourdough', label: 'Sourdough', price: 4 }],
+      sauces: ['tomato'],
+      toppings: [{ id: 'v1', name: 'caramelized onion', price: 4.4 }]
+    })
+
+    assert.equal(result.currency, 'ILS')
+    assert.deepEqual(result.sizes[0]?.price, {
+      amountMinor: 3200,
+      currency: 'ILS'
+    })
+    assert.deepEqual(result.toppings[0]?.price, {
+      amountMinor: 440,
+      currency: 'ILS'
+    })
+  })
+
+  test('still rejects an empty or non-string currency', () => {
+    assert.throws(
+      () =>
+        normalizeMenuResponse({
+          pizzeriaId: 'p1',
+          currency: '',
+          priceUnit: 'cents',
+          menu: {
+            sizes: [],
+            crusts: [],
+            sauces: [],
+            toppings: []
+          }
+        }),
+      PizzeriaApiAdapterError
+    )
+
+    assert.throws(
+      () =>
+        normalizeMenuResponse({
+          pizzeria_id: 'p2',
+          currency: null,
+          price_unit: 'decimal',
+          sizes: [],
+          crusts: [],
+          sauces: [],
+          toppings: []
+        }),
+      PizzeriaApiAdapterError
+    )
+  })
+
   test('uses only the documented discriminator fields', () => {
     assert.throws(
       () =>

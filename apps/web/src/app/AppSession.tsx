@@ -33,6 +33,7 @@ interface AppSessionValue {
   readonly sessionStatus: 'loading' | 'ready'
   readonly sessionError: string | null
   readonly location: UserLocation | null
+  readonly locationLabel: string | null
   readonly pizza: PizzaConfiguration | null
   readonly loadedFavorite: LoadedFavorite | null
   readonly radiusKm: ComparisonRadiusKm
@@ -43,7 +44,7 @@ interface AppSessionValue {
   readonly recentOrders: readonly Order[]
   readonly retrySession: () => void
   readonly setUser: (user: PublicUser | null) => void
-  readonly setLocation: (location: UserLocation) => void
+  readonly setLocation: (location: UserLocation, label: string) => void
   readonly setPizza: (pizza: PizzaConfiguration | null) => void
   readonly loadFavorite: (configuration: PizzaConfiguration) => void
   readonly setRadiusKm: (radiusKm: ComparisonRadiusKm) => void
@@ -62,7 +63,8 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
   )
   const [sessionError, setSessionError] = useState<string | null>(null)
   const [sessionEpoch, setSessionEpoch] = useState(0)
-  const [location, setLocation] = useState<UserLocation | null>(null)
+  const [location, setLocationState] = useState<UserLocation | null>(null)
+  const [locationLabel, setLocationLabel] = useState<string | null>(null)
   const [pizza, setPizza] = useState<PizzaConfiguration | null>(null)
   const [loadedFavorite, setLoadedFavorite] = useState<LoadedFavorite | null>(
     null
@@ -116,6 +118,11 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
     }
   }, [])
 
+  const setLocation = useCallback((nextLocation: UserLocation, label: string) => {
+    setLocationState(nextLocation)
+    setLocationLabel(label)
+  }, [])
+
   const loadFavorite = useCallback((configuration: PizzaConfiguration) => {
     setPizza(configuration)
     setLoadedFavorite((current) => ({
@@ -140,6 +147,7 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
       sessionStatus,
       sessionError,
       location,
+      locationLabel,
       pizza,
       loadedFavorite,
       radiusKm,
@@ -167,6 +175,7 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
       sessionStatus,
       sessionError,
       location,
+      locationLabel,
       pizza,
       loadedFavorite,
       radiusKm,
@@ -176,6 +185,7 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
       lastPlacedOrder,
       recentOrders,
       setUser,
+      setLocation,
       loadFavorite,
       recordPlacedOrder
     ]

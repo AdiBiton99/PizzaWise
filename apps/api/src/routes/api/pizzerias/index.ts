@@ -7,7 +7,10 @@ import {
   parseCompareRequest
 } from '../../../domain/comparison/index.js'
 import { findNearbyPizzerias } from '../../../domain/location/index.js'
-import { fetchNearbyPizzeriaMenus } from '../../../domain/menus/index.js'
+import {
+  fetchNearbyPizzeriaMenus,
+  recoverFailedNearbyPizzeriaMenus
+} from '../../../domain/menus/index.js'
 import { matchNearbyPizzeriaPizzas } from '../../../domain/pizza-matching/index.js'
 import {
   PizzeriaApiAdapterError,
@@ -220,19 +223,35 @@ const pizzerias: FastifyPluginAsync = async (fastify): Promise<void> => {
         throw error
       }
 
-      const menus = await fetchNearbyPizzeriaMenus(
+      const firstPass = await fetchNearbyPizzeriaMenus(
         nearby,
         fastify.pizzeriaApiClient
       )
-      const matches = matchNearbyPizzeriaPizzas(parsed.configuration, menus)
-      const uncheckedPizzeriaCount = menus.filter(
+      const recovered = await recoverFailedNearbyPizzeriaMenus(
+        firstPass,
+        fastify.pizzeriaApiClient
+      )
+      const matches = matchNearbyPizzeriaPizzas(
+        parsed.configuration,
+        recovered.menus
+      )
+      const uncheckedPizzeriaCount = recovered.menus.filter(
         (result) => result.status === 'unavailable'
       ).length
+      const debug = {
+        consideredPizzeriaCount: nearby.length,
+        checkedPizzeriaCount: recovered.firstPassCheckedCount,
+        recoveredPizzeriaCount: recovered.recoveredCount,
+        uncheckedPizzeriaCount,
+        matchedPizzeriaCount: matches.length
+      }
+      fastify.log.info({ comparisonDebug: debug }, 'Comparison debug stats')
 
       try {
         return {
           ...compareNearbyPizzas(matches, parsed.priority),
-          uncheckedPizzeriaCount
+          uncheckedPizzeriaCount,
+          debug
         }
       } catch (error) {
         if (error instanceof RangeError) {

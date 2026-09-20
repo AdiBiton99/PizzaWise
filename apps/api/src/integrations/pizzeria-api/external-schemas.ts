@@ -38,9 +38,12 @@ const centsPricedNamedOptionSchema = z.object({
   priceCents: safeNonNegativeInteger
 })
 
+const DEFAULT_EXTERNAL_MENU_CURRENCY = 'ILS'
+const menuCurrencySchema = nonEmptyString.default(DEFAULT_EXTERNAL_MENU_CURRENCY)
+
 export const centsMenuResponseSchema = z.object({
   pizzeriaId: nonEmptyString,
-  currency: nonEmptyString,
+  currency: menuCurrencySchema,
   priceUnit: z.literal('cents'),
   menu: z.object({
     sizes: z.array(centsPricedLabelOptionSchema),
@@ -66,7 +69,7 @@ const decimalPricedNamedOptionSchema = z.object({
 
 export const decimalMenuResponseSchema = z.object({
   pizzeria_id: nonEmptyString,
-  currency: nonEmptyString,
+  currency: menuCurrencySchema,
   price_unit: z.literal('decimal'),
   sizes: z.array(decimalPricedLabelOptionSchema),
   crusts: z.array(decimalPricedLabelOptionSchema),

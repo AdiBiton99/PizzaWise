@@ -125,6 +125,28 @@ describe('mapWithConcurrency', () => {
     slow.resolve()
     assert.deepEqual(await resultsPromise, ['slow', 'fast', 'next'])
   })
+
+  test('finishes remaining items before rejecting a mapper failure', async () => {
+    const seen: string[] = []
+
+    await assert.rejects(
+      async () =>
+        await mapWithConcurrency(
+          ['ok', 'boom', 'later'],
+          2,
+          async (item) => {
+            seen.push(item)
+            if (item === 'boom') {
+              throw new Error('mapper failed')
+            }
+            return item
+          }
+        ),
+      /mapper failed/
+    )
+
+    assert.deepEqual(seen.sort(), ['boom', 'later', 'ok'])
+  })
 })
 
 function createDeferred (): {

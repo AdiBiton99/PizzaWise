@@ -428,6 +428,105 @@ textarea {
   accent-color: var(--tomato);
 }
 
+.ranking-toggle ul {
+  display: flex;
+  flex-wrap: wrap;
+  grid-template-columns: none;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.ranking-toggle label {
+  min-height: 2.3rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+}
+
+.compact-summary {
+  gap: 1rem;
+}
+
+.compact-summary h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.2rem;
+}
+
+.compact-summary p {
+  margin-bottom: 0.45rem;
+}
+
+.selected-location-summary {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: start;
+}
+
+.selected-location-summary h2 {
+  margin: 0;
+}
+
+.selected-location-summary p {
+  margin: 0;
+  font-size: 1.12rem;
+}
+
+.comparison-results-area {
+  margin-top: 1.35rem;
+}
+
+.comparison-state {
+  padding: 1.5rem 1.25rem;
+  border: 2px solid var(--line);
+  border-radius: 1.35rem;
+  background: #fff;
+}
+
+.comparison-state.is-loading {
+  border-style: dashed;
+}
+
+.comparison-state p {
+  font-size: 1.15rem;
+  margin: 0 0 0.85rem;
+}
+
+.comparison-state p:last-child {
+  margin-bottom: 0;
+}
+
+.comparison-warning {
+  color: var(--muted);
+  font-size: 0.98rem;
+  margin: 0 0 0.9rem;
+}
+
+.comparison-result.is-top-match {
+  border: 2px solid var(--tomato);
+  box-shadow: 0 12px 28px rgba(176, 48, 36, 0.12);
+}
+
+.result-badge {
+  display: inline-flex;
+  margin: 0 0 0.35rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--tomato);
+  color: #fff8f3;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.result-rank {
+  font-family: var(--heading);
+  font-size: 1.85rem;
+  line-height: 1;
+  margin: 0 0 0.15rem;
+  color: var(--orange);
+}
+
 .builder-actions {
   display: flex;
   flex-wrap: wrap;
@@ -613,6 +712,152 @@ dd {
 @media (min-width: 1200px) {
   .comparison-results {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .comparison-results li.is-top-match {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1041px) {
+  :root {
+    --shell: 80rem;
+    --measure: 36rem;
+    font-size: 16px;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 3.2vw, 3.5rem);
+  }
+
+  h2 {
+    font-size: clamp(1.35rem, 1.7vw, 1.85rem);
+  }
+
+  h3 {
+    font-size: 1.15rem;
+  }
+
+  .app-shell {
+    padding: 0.85rem 1.5rem 3.5rem;
+  }
+
+  .app-header {
+    gap: 0.55rem 1rem;
+    padding: 0.25rem 0 1rem;
+  }
+
+  .brand {
+    font-size: 1.55rem;
+  }
+
+  .app-nav a {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.95rem;
+  }
+
+  .auth-actions {
+    gap: 0.45rem;
+  }
+
+  button,
+  .button-primary,
+  .button-secondary {
+    font-size: 0.95rem;
+    padding: 0.55rem 1.05rem;
+    min-height: 2.4rem;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .page-stack,
+  .home-page {
+    gap: 1.2rem;
+  }
+
+  .page-stack {
+    font-size: 1.125rem;
+    gap: 1.65rem;
+  }
+
+  .page-stack h1 {
+    font-size: clamp(2.45rem, 3.6vw, 3.65rem);
+  }
+
+  .page-stack h2 {
+    font-size: clamp(1.55rem, 2vw, 2.05rem);
+  }
+
+  .page-stack h3 {
+    font-size: 1.28rem;
+  }
+
+  .page-stack .page-intro p {
+    font-size: 1.12rem;
+  }
+
+  .page-stack .surface-card {
+    padding: 1.4rem 1.5rem;
+  }
+
+  .page-stack button,
+  .page-stack .button-primary,
+  .page-stack .button-secondary {
+    font-size: 1.05rem;
+    padding: 0.7rem 1.2rem;
+    min-height: 2.7rem;
+  }
+
+  .page-intro p {
+    font-size: 1rem;
+    margin-top: 0.4rem;
+  }
+
+  .surface-card {
+    padding: 1.05rem 1.15rem;
+    border-radius: 1.35rem;
+  }
+
+  .home-page .surface-card {
+    padding: 1.05rem 1.15rem;
+  }
+
+  .hero {
+    gap: 1.25rem;
+  }
+
+  .hero-image {
+    max-height: 22rem;
+  }
+
+  .hero-copy {
+    gap: 0.7rem;
+    padding-right: 0.75rem;
+  }
+
+  .hero-copy p {
+    font-size: 1rem;
+  }
+
+  .steps-section h2 {
+    margin-bottom: 0.1rem;
+  }
+
+  .steps-grid {
+    gap: 0.75rem;
+    margin-top: 0.7rem;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  }
+
+  .steps-grid h3 {
+    margin: 0.05rem 0 0.2rem;
+  }
+
+  .step-number {
+    font-size: 1.75rem;
   }
 }
 

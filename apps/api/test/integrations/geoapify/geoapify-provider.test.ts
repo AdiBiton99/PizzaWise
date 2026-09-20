@@ -54,6 +54,62 @@ describe('GeoapifyProvider', () => {
     )
   })
 
+  test('normalizes a valid reverse-geocoding response', async () => {
+    const fetch: HttpFetch = async (input, init) => {
+      const url = new URL(input.toString())
+      assert.equal(
+        url.origin + url.pathname,
+        'https://api.geoapify.com/v1/geocode/reverse'
+      )
+      assert.equal(url.searchParams.get('lat'), '32.0809')
+      assert.equal(url.searchParams.get('lon'), '34.7806')
+      assert.equal(url.searchParams.get('format'), 'json')
+      assert.equal(url.searchParams.get('limit'), '1')
+      assert.equal(url.searchParams.get('apiKey'), 'test-key')
+      assert.equal(init?.method, 'GET')
+
+      return jsonResponse({
+        results: [
+          {
+            formatted: 'Rothschild Boulevard, Tel Aviv-Yafo, Israel',
+            lat: 32.065,
+            lon: 34.771
+          }
+        ]
+      })
+    }
+
+    const provider = new GeoapifyProvider(
+      { apiKey: 'test-key' },
+      { fetch }
+    )
+
+    assert.deepEqual(
+      await provider.reverse({
+        latitude: 32.0809,
+        longitude: 34.7806
+      }),
+      {
+        label: 'Rothschild Boulevard, Tel Aviv-Yafo, Israel',
+        location: {
+          latitude: 32.065,
+          longitude: 34.771
+        }
+      }
+    )
+  })
+
+  test('returns null when reverse geocoding has no results', async () => {
+    const provider = providerWithResponse({ results: [] })
+    assert.equal(
+      await provider.reverse({
+        latitude: 32.0809,
+        longitude: 34.7806
+      }),
+      null
+    )
+  })
+
   test('returns an empty list when Geoapify has no results', async () => {
     const provider = providerWithResponse({ results: [] })
     assert.deepEqual(await provider.search('Unknown place', 5), [])

@@ -4,11 +4,13 @@ import { useAppSession } from '../app/AppSession'
 import { WorkflowProgress } from '../app/WorkflowProgress'
 import { PizzaComparisonPanel } from '../features/comparison/PizzaComparisonPanel'
 import { radiusOptionLabel } from '../features/comparison/comparison-options'
+import { currentLocationLabel } from '../features/location/format-location-label'
 
 export function ComparePage() {
   const {
     user,
     location,
+    locationLabel,
     pizza,
     radiusKm,
     ranking,
@@ -28,8 +30,10 @@ export function ComparePage() {
       ? 'no toppings'
       : pizza.toppingTags.map(pizzaOptionLabel).join(', ')
 
+  const searchLabel = locationLabel ?? currentLocationLabel(location)
+
   return (
-    <div className="page-stack">
+    <div className="page-stack compare-page">
       <WorkflowProgress current="compare" />
       <header className="page-intro">
         <p className="eyebrow">Step 3 of 5</p>
@@ -39,7 +43,7 @@ export function ComparePage() {
           first if you have not already.
         </p>
       </header>
-      <section className="surface-card workflow-summary" aria-label="Selected pizza and location">
+      <section className="surface-card workflow-summary compact-summary" aria-label="Selected pizza and location">
         <div>
           <h2>Your pizza</h2>
           <p>
@@ -52,13 +56,14 @@ export function ComparePage() {
         </div>
         <div>
           <h2>Search area</h2>
-          <p>Location selected · {radiusOptionLabel(radiusKm)}</p>
+          <p>{searchLabel}</p>
+          <p>Search radius: {radiusOptionLabel(radiusKm)}</p>
           <Link className="button-secondary" to="/location">
             Change location
           </Link>
         </div>
       </section>
-      <div className="surface-card">
+      <div className="surface-card comparison-workspace">
         <PizzaComparisonPanel
           user={user}
           location={location}

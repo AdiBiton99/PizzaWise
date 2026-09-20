@@ -1,4 +1,4 @@
-import type { LocationSearchResult } from '@pizzawise/shared'
+import type { LocationSearchResult, UserLocation } from '@pizzawise/shared'
 import {
   type GeocodingProvider,
   GeocodingProviderError
@@ -15,6 +15,8 @@ import {
 
 const GEOAPIFY_SEARCH_URL =
   'https://api.geoapify.com/v1/geocode/search'
+const GEOAPIFY_REVERSE_URL =
+  'https://api.geoapify.com/v1/geocode/reverse'
 const DEFAULT_TIMEOUT_MS = 8_000
 
 type HttpFetch = (
@@ -76,6 +78,26 @@ export class GeoapifyProvider implements GeocodingProvider {
       )
     }
 
+    return await this.#withRetries(
+      'geoapify.search',
+      async () => await this.#searchOnce(query, limit)
+    )
+  }
+
+  async reverse (
+    location: UserLocation
+  ): Promise<LocationSearchResult | null> {
+    const results = await this.#withRetries(
+      'geoapify.reverse',
+      async () => await this.#reverseOnce(location)
+    )
+    return results[0] ?? null
+  }
+
+  async #withRetries<T> (
+    operation: 'geoapify.search' | 'geoapify.reverse',
+    run: () => Promise<T>
+  ): Promise<T> {
     return await withUpstreamRetries({
       sleep: this.#sleep,
       isRetryable: isRetryableGeoapifyError,
@@ -87,9 +109,9 @@ export class GeoapifyProvider implements GeocodingProvider {
           failedAttemptIndex
         ),
       onFailure: (error, attempt, willRetry) => {
-        this.#logFailure(error, attempt, willRetry)
+        this.#logFailure(operation, error, attempt, willRetry)
       },
-      operation: async () => await this.#searchOnce(query, limit)
+      operation: run
     })
   }
 
@@ -102,6 +124,24 @@ export class GeoapifyProvider implements GeocodingProvider {
     url.searchParams.set('format', 'json')
     url.searchParams.set('limit', String(limit))
     url.searchParams.set('apiKey', this.#apiKey)
+    return await this.#requestResults(url)
+  }
+
+  async #reverseOnce (
+    location: UserLocation
+  ): Promise<readonly LocationSearchResult[]> {
+    const url = new URL(GEOAPIFY_REVERSE_URL)
+    url.searchParams.set('lat', String(location.latitude))
+    url.searchParams.set('lon', String(location.longitude))
+    url.searchParams.set('format', 'json')
+    url.searchParams.set('limit', '1')
+    url.searchParams.set('apiKey', this.#apiKey)
+    return await this.#requestResults(url)
+  }
+
+  async #requestResults (
+    url: URL
+  ): Promise<readonly LocationSearchResult[]> {
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), this.#timeoutMs)
@@ -191,6 +231,7 @@ export class GeoapifyProvider implements GeocodingProvider {
   }
 
   #logFailure (
+    operation: 'geoapify.search' | 'geoapify.reverse',
     error: unknown,
     attempt: number,
     willRetry: boolean
@@ -200,7 +241,7 @@ export class GeoapifyProvider implements GeocodingProvider {
     }
 
     const fields: Record<string, unknown> = {
-      operation: 'geoapify.search',
+      operation,
       attempt,
       willRetry,
       errorName: error instanceof Error ? error.name : 'UnknownError'

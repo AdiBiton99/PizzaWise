@@ -79,7 +79,7 @@ describe('PizzaComparisonPanel', () => {
       />
     )
 
-    expect((screen.getByLabelText('Balanced') as HTMLInputElement).checked).toBe(
+    expect((screen.getByLabelText('Best overall') as HTMLInputElement).checked).toBe(
       true
     )
 
@@ -94,7 +94,11 @@ describe('PizzaComparisonPanel', () => {
       radiusKm: 10,
       configuration: PIZZA
     })
-    expect(screen.getByText('No matching pizzas nearby.')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'No nearby pizzeria could match this pizza. Try a larger search radius or change the pizza configuration.'
+      )
+    ).toBeTruthy()
   })
 
   it('omits radiusKm when searching All pizzerias', async () => {
@@ -146,7 +150,11 @@ describe('PizzaComparisonPanel', () => {
       )
     ).toBeTruthy()
     expect(screen.getByText('1. Funghi Bros')).toBeTruthy()
+    expect(screen.getByText('Top match')).toBeTruthy()
     expect(screen.queryByText('No matching pizzas nearby.')).toBeNull()
+    expect(
+      screen.queryByText(/No nearby pizzeria could match this pizza/)
+    ).toBeNull()
   })
 
   it('does not treat an incomplete empty ranking as no nearby matches', async () => {
@@ -166,10 +174,14 @@ describe('PizzaComparisonPanel', () => {
 
     expect(
       await screen.findByText(
-        'Some nearby pizzerias could not be checked. Try Compare again.'
+        'Some nearby pizzerias could not be checked, so we could not finish this comparison.'
       )
     ).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Retry comparison' })).toBeTruthy()
     expect(screen.queryByText('No matching pizzas nearby.')).toBeNull()
+    expect(
+      screen.queryByText(/No nearby pizzeria could match this pizza/)
+    ).toBeNull()
   })
 
   it('sends an explicit ranking priority', async () => {
@@ -187,7 +199,7 @@ describe('PizzaComparisonPanel', () => {
       />
     )
 
-    fireEvent.click(screen.getByLabelText('Price'))
+    fireEvent.click(screen.getByLabelText('Lowest price'))
     fireEvent.click(screen.getByRole('button', { name: 'Compare' }))
 
     await act(async () => {
@@ -224,7 +236,7 @@ describe('PizzaComparisonPanel', () => {
     expect(screen.getByText('1.2 km')).toBeTruthy()
     expect(screen.getByText('12–20 min')).toBeTruthy()
     expect(screen.getByText('Sign in to order.')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Order' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Order from / })).toBeNull()
   })
 
   it('chooses a ranked pizzeria for checkout', async () => {
@@ -259,10 +271,14 @@ describe('PizzaComparisonPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Compare' }))
     expect(await screen.findByText('1. Funghi Bros')).toBeTruthy()
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Order' })[0] as HTMLElement)
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Order from Funghi Bros' })
+    )
     expect(onChoosePizzeria).toHaveBeenCalledWith('p2')
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Order' })[1] as HTMLElement)
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Order from Other Slice' })
+    )
     expect(onChoosePizzeria).toHaveBeenCalledWith('p3')
   })
 
@@ -296,9 +312,17 @@ describe('PizzaComparisonPanel', () => {
       rejectComparison?.(new Error('nope'))
     })
 
-    expect((await screen.findByRole('alert')).textContent).toBe(
+    expect((await screen.findByRole('alert')).textContent).toContain(
       'Comparison failed. Please try again.'
     )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry comparison' }))
+
+    expect(comparePizzas).toHaveBeenCalledTimes(2)
+    expect(
+      (screen.getByRole('button', { name: 'Comparing…' }) as HTMLButtonElement)
+        .disabled
+    ).toBe(true)
   })
 
   it('clears results when the completed pizza is invalidated', async () => {

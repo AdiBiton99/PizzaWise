@@ -12,6 +12,7 @@ export async function mapWithConcurrency<T, R> (
   }
 
   const results = new Array<R>(items.length)
+  const errors: unknown[] = []
   let nextIndex = 0
 
   async function worker (): Promise<void> {
@@ -22,12 +23,19 @@ export async function mapWithConcurrency<T, R> (
         return
       }
 
-      results[index] = await mapper(items[index] as T, index)
+      try {
+        results[index] = await mapper(items[index] as T, index)
+      } catch (error) {
+        errors.push(error)
+      }
     }
   }
 
   const workerCount = Math.min(concurrency, items.length)
   await Promise.all(Array.from({ length: workerCount }, () => worker()))
+  if (errors.length > 0) {
+    throw errors[0]
+  }
 
   return results
 }

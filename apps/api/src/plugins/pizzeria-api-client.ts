@@ -1,5 +1,7 @@
 import type { Menu, Pizzeria } from '@pizzawise/shared'
 import fp from 'fastify-plugin'
+import { PizzeriaDirectoryGateway } from '../domain/location/index.js'
+import { PizzeriaMenuGateway } from '../domain/menus/index.js'
 import { createPizzeriaApiClientFromEnv } from '../integrations/pizzeria-api/index.js'
 
 export interface PizzeriaApiClientContract {
@@ -13,15 +15,32 @@ export interface PizzeriaApiClientPluginOptions {
 
 export default fp<PizzeriaApiClientPluginOptions>(
   async (fastify, options) => {
-    const client =
-      options.pizzeriaApiClient ??
-      createPizzeriaApiClientFromEnv(process.env, {
+    if (options.pizzeriaApiClient !== undefined) {
+      fastify.decorate('pizzeriaApiClient', options.pizzeriaApiClient)
+      return
+    }
+
+    const client = createPizzeriaApiClientFromEnv(process.env, {
+      warn: (fields, message) => {
+        fastify.log.warn(fields, message)
+      }
+    })
+    const directory = new PizzeriaDirectoryGateway(
+      async () => await client.getPizzerias()
+    )
+    const menus = new PizzeriaMenuGateway(
+      async (pizzeriaId) => await client.getMenu(pizzeriaId),
+      {
         warn: (fields, message) => {
           fastify.log.warn(fields, message)
         }
-      })
+      }
+    )
 
-    fastify.decorate('pizzeriaApiClient', client)
+    fastify.decorate('pizzeriaApiClient', {
+      getPizzerias: async () => await directory.getPizzerias(),
+      getMenu: async (pizzeriaId) => await menus.getMenu(pizzeriaId)
+    })
   },
   {
     name: 'pizzeria-api-client'

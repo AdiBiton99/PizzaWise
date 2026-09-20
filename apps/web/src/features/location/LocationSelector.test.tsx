@@ -20,6 +20,7 @@ describe('LocationSelector', () => {
       <LocationSelector
         location={null}
         geolocation={{ getCurrentPosition }}
+        reverseGeocode={async () => null}
         onLocationSelected={onLocationSelected}
       />
     )
@@ -38,13 +39,116 @@ describe('LocationSelector', () => {
       successCallback?.(position(32.0809, 34.7806))
     })
 
-    expect(onLocationSelected).toHaveBeenCalledWith({
+    expect(onLocationSelected).toHaveBeenCalledWith(
+      {
+        latitude: 32.0809,
+        longitude: 34.7806
+      },
+      'Current location (32.081, 34.781)'
+    )
+  })
+
+  it('stores a reverse-geocoded address after using browser location', async () => {
+    let successCallback: PositionCallback | undefined
+    const getCurrentPosition = vi.fn<Geolocation['getCurrentPosition']>(
+      (success) => {
+        successCallback = success
+      }
+    )
+    const onLocationSelected = vi.fn()
+    const reverseGeocode = vi.fn(async () => 'Rothschild Boulevard, Tel Aviv, Israel')
+
+    render(
+      <LocationSelector
+        location={null}
+        geolocation={{ getCurrentPosition }}
+        reverseGeocode={reverseGeocode}
+        onLocationSelected={onLocationSelected}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Use my location' }))
+
+    await act(async () => {
+      successCallback?.(position(32.0809, 34.7806))
+    })
+
+    expect(reverseGeocode).toHaveBeenCalledWith({
       latitude: 32.0809,
       longitude: 34.7806
     })
+    expect(onLocationSelected).toHaveBeenCalledWith(
+      {
+        latitude: 32.0809,
+        longitude: 34.7806
+      },
+      'Rothschild Boulevard, Tel Aviv, Israel'
+    )
   })
 
-  it('shows confirmation without displaying precise coordinates', () => {
+  it('collapses the search form after a location is selected', async () => {
+    let successCallback: PositionCallback | undefined
+    const getCurrentPosition = vi.fn<Geolocation['getCurrentPosition']>(
+      (success) => {
+        successCallback = success
+      }
+    )
+    const selected = { latitude: 32.0809, longitude: 34.7806 }
+
+    const { rerender } = render(
+      <LocationSelector
+        location={null}
+        radiusKm={5}
+        geolocation={{ getCurrentPosition }}
+        reverseGeocode={async () => null}
+        onLocationSelected={vi.fn()}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Use my location' }))
+
+    await act(async () => {
+      successCallback?.(position(32.0809, 34.7806))
+    })
+
+    rerender(
+      <LocationSelector
+        location={selected}
+        locationLabel="Current location (32.081, 34.781)"
+        radiusKm={5}
+        geolocation={{ getCurrentPosition }}
+        onLocationSelected={vi.fn()}
+      />
+    )
+
+    expect(screen.getByText('Your location')).toBeTruthy()
+    expect(screen.getByText('Current location (32.081, 34.781)')).toBeTruthy()
+    expect(screen.getByText('Search radius: 5 km')).toBeTruthy()
+    expect(screen.queryByLabelText('City or address')).toBeNull()
+    expect(screen.queryByText('Location selected.')).toBeNull()
+    expect(screen.queryByText(/32\.0809|34\.7806/)).toBeNull()
+  })
+
+  it('reopens the location search form when Change location is clicked', () => {
+    render(
+      <LocationSelector
+        location={{ latitude: 32.0809, longitude: 34.7806 }}
+        locationLabel="Dizengoff Street 100, Tel Aviv-Yafo, Israel"
+        radiusKm={10}
+        geolocation={null}
+        onLocationSelected={vi.fn()}
+      />
+    )
+
+    expect(screen.queryByLabelText('City or address')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Change location' }))
+
+    expect(screen.getByLabelText('City or address')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Use my location' })).toBeTruthy()
+  })
+
+  it('shows a readable coordinate fallback without displaying precise coordinates', () => {
     render(
       <LocationSelector
         location={{ latitude: 32.0809, longitude: 34.7806 }}
@@ -53,7 +157,9 @@ describe('LocationSelector', () => {
       />
     )
 
-    expect(screen.getByText('Location selected.')).toBeTruthy()
+    expect(screen.getByText('Your location')).toBeTruthy()
+    expect(screen.getByText('Current location (32.081, 34.781)')).toBeTruthy()
+    expect(screen.queryByText('Location selected.')).toBeNull()
     expect(screen.queryByText(/32\.0809|34\.7806/)).toBeNull()
   })
 
@@ -156,10 +262,13 @@ describe('LocationSelector', () => {
       })
     )
 
-    expect(onLocationSelected).toHaveBeenCalledWith({
-      latitude: 32.0809,
-      longitude: 34.7806
-    })
+    expect(onLocationSelected).toHaveBeenCalledWith(
+      {
+        latitude: 32.0809,
+        longitude: 34.7806
+      },
+      'Dizengoff Street 100, Tel Aviv-Yafo, Israel'
+    )
   })
 
   it('rejects an empty manual query without searching', async () => {

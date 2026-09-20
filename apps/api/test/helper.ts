@@ -27,6 +27,9 @@ const unusedDatabase = {} as Database
 const unusedGeocodingProvider: GeocodingProvider = {
   async search () {
     throw new Error('Unexpected geocoding provider call in test')
+  },
+  async reverse () {
+    throw new Error('Unexpected geocoding provider call in test')
   }
 }
 

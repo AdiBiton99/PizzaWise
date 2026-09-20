@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   LocationSearchError,
+  reverseGeocode,
   searchLocations
 } from './location-api'
 
@@ -67,9 +68,53 @@ describe('searchLocations', () => {
       })
     )
 
-    await expect(searchLocations('Invalid', fetch)).rejects.toBeInstanceOf(
+    await expect(
+      searchLocations('Invalid', fetch)
+    ).rejects.toBeInstanceOf(
       LocationSearchError
     )
+  })
+})
+
+describe('reverseGeocode', () => {
+  it('posts coordinates and returns the resolved address label', async () => {
+    const fetch = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      expect(input).toBe('/api/locations/reverse')
+      expect(init?.method).toBe('POST')
+      expect(init?.body).toBe(
+        JSON.stringify({
+          latitude: 32.0809,
+          longitude: 34.7806
+        })
+      )
+
+      return jsonResponse({
+        result: {
+          label: 'Rothschild Boulevard, Tel Aviv-Yafo, Israel',
+          location: {
+            latitude: 32.065,
+            longitude: 34.771
+          }
+        }
+      })
+    })
+
+    await expect(
+      reverseGeocode(
+        { latitude: 32.0809, longitude: 34.7806 },
+        fetch
+      )
+    ).resolves.toBe('Rothschild Boulevard, Tel Aviv-Yafo, Israel')
+  })
+
+  it('returns null when no address is found', async () => {
+    const fetch = vi.fn(async () => jsonResponse({ result: null }))
+    await expect(
+      reverseGeocode(
+        { latitude: 32.0809, longitude: 34.7806 },
+        fetch
+      )
+    ).resolves.toBeNull()
   })
 })
 

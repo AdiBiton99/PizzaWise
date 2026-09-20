@@ -5,7 +5,8 @@ import { LocationSelector } from '../features/location/LocationSelector'
 import { RadiusPicker } from '../features/location/RadiusPicker'
 
 export function LocationPage() {
-  const { location, radiusKm, setLocation, setRadiusKm } = useAppSession()
+  const { location, locationLabel, radiusKm, setLocation, setRadiusKm } =
+    useAppSession()
 
   return (
     <div className="page-stack">
@@ -18,12 +19,15 @@ export function LocationPage() {
           look. All includes every listed pizzeria, regardless of distance.
         </p>
       </header>
-      <div className="surface-card location-layout">
+      <div className="surface-card">
         <LocationSelector
           location={location}
+          locationLabel={locationLabel}
+          radiusKm={radiusKm}
           onLocationSelected={setLocation}
-        />
-        <RadiusPicker radiusKm={radiusKm} onChange={setRadiusKm} />
+        >
+          <RadiusPicker radiusKm={radiusKm} onChange={setRadiusKm} />
+        </LocationSelector>
       </div>
       <div className="builder-actions">
         <Link className="button-secondary" to="/build">

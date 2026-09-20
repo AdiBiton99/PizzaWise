@@ -1,10 +1,11 @@
-import type { LocationSearchResult } from '@pizzawise/shared'
+import type { LocationSearchResult, UserLocation } from '@pizzawise/shared'
 
 export interface GeocodingProvider {
   search(
     query: string,
     limit: number
   ): Promise<readonly LocationSearchResult[]>
+  reverse(location: UserLocation): Promise<LocationSearchResult | null>
 }
 
 export type GeocodingProviderErrorKind =

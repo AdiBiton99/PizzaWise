@@ -48,6 +48,16 @@ interface PizzaComparisonPanelProps {
   readonly comparePizzas?: ComparePizzas
 }
 
+const RANKING_OPTIONS: readonly {
+  readonly value: RankingChoice
+  readonly label: string
+}[] = [
+  { value: 'balanced', label: 'Best overall' },
+  { value: 'price', label: 'Lowest price' },
+  { value: 'distance', label: 'Closest' },
+  { value: 'eta', label: 'Fastest' }
+]
+
 export function PizzaComparisonPanel({
   user,
   location,
@@ -118,21 +128,27 @@ export function PizzaComparisonPanel({
     }
   }
 
+  const successOutcome =
+    currentOutcome?.kind === 'success' ? currentOutcome : null
+  const hasRankedResults =
+    successOutcome !== null && successOutcome.ranked.length > 0
+  const incompleteEmpty =
+    successOutcome !== null &&
+    successOutcome.ranked.length === 0 &&
+    successOutcome.uncheckedPizzeriaCount > 0
+  const emptyMatches =
+    successOutcome !== null &&
+    successOutcome.ranked.length === 0 &&
+    successOutcome.uncheckedPizzeriaCount === 0
+
   return (
     <section className="pizza-comparison" aria-labelledby="comparison-heading">
       <h2 id="comparison-heading">Compare nearby pizzas</h2>
 
-      <fieldset className="builder-options option-pills">
-        <legend>Ranking</legend>
+      <fieldset className="builder-options option-pills ranking-toggle">
+        <legend>What&apos;s most important to you?</legend>
         <ul>
-          {(
-            [
-              ['balanced', 'Balanced'],
-              ['price', 'Price'],
-              ['distance', 'Distance'],
-              ['eta', 'ETA']
-            ] as const
-          ).map(([value, label]) => (
+          {RANKING_OPTIONS.map(({ value, label }) => (
             <li key={value}>
               <label className={ranking === value ? 'is-selected' : undefined}>
                 <input
@@ -160,70 +176,120 @@ export function PizzaComparisonPanel({
         </button>
       </div>
 
-      <div className="comparison-status" aria-live="polite" aria-busy={isLoading}>
-        {missingMessage !== null && !isLoading && currentOutcome === null && (
+      {missingMessage !== null && !isLoading && currentOutcome === null && (
+        <div className="comparison-status" aria-live="polite">
           <p>{missingMessage}</p>
+        </div>
+      )}
+
+      <div
+        className="comparison-results-area"
+        aria-live="polite"
+        aria-busy={isLoading}
+      >
+        {isLoading && (
+          <div className="comparison-state is-loading">
+            <p>Comparing nearby pizzerias…</p>
+          </div>
         )}
-        {isLoading && <p>Comparing nearby pizzerias…</p>}
-        {currentOutcome?.kind === 'error' && (
-          <p role="alert">{currentOutcome.message}</p>
+
+        {!isLoading && currentOutcome?.kind === 'error' && (
+          <div className="comparison-state is-error" role="alert">
+            <p>{currentOutcome.message}</p>
+            <button
+              type="button"
+              className="button-primary"
+              onClick={() => void handleCompare()}
+            >
+              Retry comparison
+            </button>
+          </div>
         )}
-        {currentOutcome?.kind === 'success' &&
-          currentOutcome.uncheckedPizzeriaCount > 0 && (
-          <p>
-            Some nearby pizzerias could not be checked. Try Compare again.
-          </p>
+
+        {!isLoading && incompleteEmpty && (
+          <div className="comparison-state is-incomplete">
+            <p>
+              Some nearby pizzerias could not be checked, so we could not finish
+              this comparison.
+            </p>
+            <button
+              type="button"
+              className="button-primary"
+              onClick={() => void handleCompare()}
+            >
+              Retry comparison
+            </button>
+          </div>
         )}
-        {currentOutcome?.kind === 'success' &&
-          currentOutcome.ranked.length === 0 &&
-          currentOutcome.uncheckedPizzeriaCount === 0 && (
-          <p>No matching pizzas nearby.</p>
+
+        {!isLoading && emptyMatches && (
+          <div className="comparison-state is-empty">
+            <p>
+              No nearby pizzeria could match this pizza. Try a larger search
+              radius or change the pizza configuration.
+            </p>
+          </div>
+        )}
+
+        {!isLoading && hasRankedResults && successOutcome !== null && (
+          <>
+            {successOutcome.uncheckedPizzeriaCount > 0 && (
+              <p className="comparison-warning">
+                Some nearby pizzerias could not be checked. Try Compare again.
+              </p>
+            )}
+            <ol className="comparison-results" aria-label="Ranked pizzerias">
+              {successOutcome.ranked.map((pizzaResult) => (
+                <li
+                  className={
+                    pizzaResult.rank === 1
+                      ? 'surface-card comparison-result is-top-match'
+                      : 'surface-card comparison-result'
+                  }
+                  key={`${pizzaResult.rank}-${pizzaResult.nearby.pizzeria.id}`}
+                >
+                  {pizzaResult.rank === 1 && (
+                    <p className="result-badge">Top match</p>
+                  )}
+                  <p className="result-rank">#{pizzaResult.rank}</p>
+                  <h3>
+                    {pizzaResult.rank}. {pizzaResult.nearby.pizzeria.name}
+                  </h3>
+                  <dl>
+                    <div>
+                      <dt>Price</dt>
+                      <dd>{formatPrice(pizzaResult.total)}</dd>
+                    </div>
+                    <div>
+                      <dt>Distance</dt>
+                      <dd>{formatDistanceKm(pizzaResult.nearby.distanceKm)}</dd>
+                    </div>
+                    <div>
+                      <dt>ETA</dt>
+                      <dd>{formatEta(pizzaResult.nearby.pizzeria.averageEta)}</dd>
+                    </div>
+                  </dl>
+                  {user === null ? (
+                    <p>Sign in to order.</p>
+                  ) : (
+                    <div className="builder-actions">
+                      <button
+                        type="button"
+                        className="button-primary"
+                        onClick={() =>
+                          onChoosePizzeria?.(pizzaResult.nearby.pizzeria.id)
+                        }
+                      >
+                        Order from {pizzaResult.nearby.pizzeria.name}
+                      </button>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </>
         )}
       </div>
-
-      {currentOutcome?.kind === 'success' && currentOutcome.ranked.length > 0 && (
-        <ol className="comparison-results" aria-label="Ranked pizzerias">
-          {currentOutcome.ranked.map((pizzaResult) => (
-            <li
-              className="surface-card"
-              key={`${pizzaResult.rank}-${pizzaResult.nearby.pizzeria.id}`}
-            >
-              <h3>
-                {pizzaResult.rank}. {pizzaResult.nearby.pizzeria.name}
-              </h3>
-              <dl>
-                <div>
-                  <dt>Price</dt>
-                  <dd>{formatPrice(pizzaResult.total)}</dd>
-                </div>
-                <div>
-                  <dt>Distance</dt>
-                  <dd>{formatDistanceKm(pizzaResult.nearby.distanceKm)}</dd>
-                </div>
-                <div>
-                  <dt>ETA</dt>
-                  <dd>{formatEta(pizzaResult.nearby.pizzeria.averageEta)}</dd>
-                </div>
-              </dl>
-              {user === null ? (
-                <p>Sign in to order.</p>
-              ) : (
-                <div className="builder-actions">
-                  <button
-                    type="button"
-                    className="button-primary"
-                    onClick={() =>
-                      onChoosePizzeria?.(pizzaResult.nearby.pizzeria.id)
-                    }
-                  >
-                    Order
-                  </button>
-                </div>
-              )}
-            </li>
-          ))}
-        </ol>
-      )}
     </section>
   )
 }

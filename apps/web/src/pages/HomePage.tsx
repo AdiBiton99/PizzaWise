@@ -36,11 +36,11 @@ export function HomePage() {
     <div className="home-page">
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">Neighborhood pizza, ranked</p>
-          <h1>Find the best pie near you.</h1>
+          <p className="eyebrow">Neighborhood pizza, made easy</p>
+          <h1>Your perfect pizza is closer than you think.</h1>
           <p>
-            Build your pizza, compare nearby shops on price, distance, and ETA,
-            then order from the winner.
+            Build it your way, and we’ll help you find the right place to order
+            it from.
           </p>
           <Link className="button-primary" to="/build">
             Build my pizza

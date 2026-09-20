@@ -25,6 +25,9 @@ describe('manual location route', () => {
             }
           }
         ]
+      },
+      async reverse () {
+        throw new Error('Provider should not reverse')
       }
     }
     const app = await build(t, { geocodingProvider: provider })
@@ -73,6 +76,9 @@ describe('manual location route', () => {
     const provider: GeocodingProvider = {
       async search () {
         return []
+      },
+      async reverse () {
+        throw new Error('Provider should not reverse')
       }
     }
     const app = await build(t, { geocodingProvider: provider })
@@ -123,11 +129,83 @@ describe('manual location route', () => {
     assert.equal(response.headers['retry-after'], '30')
     assert.doesNotMatch(response.body, /provider detail/)
   })
+
+  test('reverse-geocodes coordinates into a canonical address label', async (t) => {
+    let receivedLatitude: number | undefined
+    let receivedLongitude: number | undefined
+    const provider: GeocodingProvider = {
+      async search () {
+        throw new Error('Provider should not search')
+      },
+      async reverse (location) {
+        receivedLatitude = location.latitude
+        receivedLongitude = location.longitude
+        return {
+          label: 'Rothschild Boulevard, Tel Aviv-Yafo, Israel',
+          location: {
+            latitude: 32.065,
+            longitude: 34.771
+          }
+        }
+      }
+    }
+    const app = await build(t, { geocodingProvider: provider })
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/locations/reverse',
+      payload: {
+        latitude: 32.0809,
+        longitude: 34.7806
+      }
+    })
+
+    assert.equal(response.statusCode, 200)
+    assert.equal(response.headers['cache-control'], 'no-store')
+    assert.equal(receivedLatitude, 32.0809)
+    assert.equal(receivedLongitude, 34.7806)
+    assert.deepEqual(response.json(), {
+      result: {
+        label: 'Rothschild Boulevard, Tel Aviv-Yafo, Israel',
+        location: {
+          latitude: 32.065,
+          longitude: 34.771
+        }
+      }
+    })
+  })
+
+  test('returns a null reverse result without treating it as an error', async (t) => {
+    const provider: GeocodingProvider = {
+      async search () {
+        throw new Error('Provider should not search')
+      },
+      async reverse () {
+        return null
+      }
+    }
+    const app = await build(t, { geocodingProvider: provider })
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/locations/reverse',
+      payload: {
+        latitude: 32.0809,
+        longitude: 34.7806
+      }
+    })
+
+    assert.equal(response.statusCode, 200)
+    assert.deepEqual(response.json(), { result: null })
+  })
 })
 
 function unusedProvider (): GeocodingProvider {
   return {
     async search () {
+      throw new Error('Provider should not be called')
+    },
+    async reverse () {
       throw new Error('Provider should not be called')
     }
   }
@@ -136,6 +214,9 @@ function unusedProvider (): GeocodingProvider {
 function failingProvider (error: Error): GeocodingProvider {
   return {
     async search () {
+      throw error
+    },
+    async reverse () {
       throw error
     }
   }

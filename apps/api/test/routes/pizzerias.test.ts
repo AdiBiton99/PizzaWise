@@ -360,6 +360,13 @@ describe('POST /api/pizzerias/compare', () => {
     assert.equal(body.ranked[0]?.total.amountMinor, 900)
     assert.equal(body.ranked[1]?.nearby.pizzeria.id, 'p-near')
     assert.equal(body.uncheckedPizzeriaCount, 0)
+    assert.deepEqual(body.debug, {
+      consideredPizzeriaCount: 2,
+      checkedPizzeriaCount: 2,
+      recoveredPizzeriaCount: 0,
+      uncheckedPizzeriaCount: 0,
+      matchedPizzeriaCount: 2
+    })
   })
 
   test('omits unmatched and failed menus and respects radiusKm', async (t) => {
@@ -468,7 +475,14 @@ describe('POST /api/pizzerias/compare', () => {
     assert.equal(response.statusCode, 200)
     assert.deepEqual(response.json(), {
       ranked: [],
-      uncheckedPizzeriaCount: 0
+      uncheckedPizzeriaCount: 0,
+      debug: {
+        consideredPizzeriaCount: 1,
+        checkedPizzeriaCount: 1,
+        recoveredPizzeriaCount: 0,
+        uncheckedPizzeriaCount: 0,
+        matchedPizzeriaCount: 0
+      }
     })
   })
 
@@ -552,6 +566,54 @@ describe('POST /api/pizzerias/compare', () => {
     assert.equal(response.json().ranked.length, 1)
     assert.equal(response.json().ranked[0]?.nearby.pizzeria.id, 'p-near')
     assert.equal(response.json().uncheckedPizzeriaCount, 1)
+    assert.deepEqual(response.json().debug, {
+      consideredPizzeriaCount: 2,
+      checkedPizzeriaCount: 1,
+      recoveredPizzeriaCount: 0,
+      uncheckedPizzeriaCount: 1,
+      matchedPizzeriaCount: 1
+    })
+  })
+
+  test('recovers a first-pass menu failure and includes it in ranking', async (t) => {
+    const attempts = new Map<string, number>()
+    const client: PizzeriaApiClientContract = {
+      async getPizzerias () {
+        return [NEAR_PIZZERIA, FAR_PIZZERIA]
+      },
+      async getMenu (id) {
+        const attempt = (attempts.get(id) ?? 0) + 1
+        attempts.set(id, attempt)
+        if (id === 'p-far' && attempt === 1) {
+          throw new PizzeriaApiClientError('transient menu down', { status: 500 })
+        }
+        return matchingMenu(id, id === 'p-near' ? 5000 : 400)
+      }
+    }
+    const app = await build(t, { pizzeriaApiClient: client })
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/pizzerias/compare',
+      payload: {
+        location: COMPARE_LOCATION,
+        radiusKm: 5,
+        configuration: COMPARE_CONFIGURATION
+      }
+    })
+
+    assert.equal(response.statusCode, 200)
+    assert.equal(attempts.get('p-near'), 1)
+    assert.equal(attempts.get('p-far'), 2)
+    assert.equal(response.json().ranked.length, 2)
+    assert.equal(response.json().uncheckedPizzeriaCount, 0)
+    assert.deepEqual(response.json().debug, {
+      consideredPizzeriaCount: 2,
+      checkedPizzeriaCount: 1,
+      recoveredPizzeriaCount: 1,
+      uncheckedPizzeriaCount: 0,
+      matchedPizzeriaCount: 2
+    })
   })
 
   test('does not treat an empty ranking caused by failed menus as no matches', async (t) => {
@@ -578,7 +640,14 @@ describe('POST /api/pizzerias/compare', () => {
     assert.equal(response.statusCode, 200)
     assert.deepEqual(response.json(), {
       ranked: [],
-      uncheckedPizzeriaCount: 1
+      uncheckedPizzeriaCount: 1,
+      debug: {
+        consideredPizzeriaCount: 1,
+        checkedPizzeriaCount: 0,
+        recoveredPizzeriaCount: 0,
+        uncheckedPizzeriaCount: 1,
+        matchedPizzeriaCount: 0
+      }
     })
   })
 })
