@@ -76,7 +76,7 @@ Schema: `apps/api/src/db/schema.ts`. Migrations: `apps/api/drizzle/`. `DATABASE_
 | --- | --- |
 | `users` | Email + password hash |
 | `sessions` | Token hash, expiry |
-| `profiles` | Display name, phone |
+| `profiles` | Phone, default delivery address |
 | `favorite_pizzas` / `favorite_pizza_toppings` | Saved configurations |
 | `orders` / `order_toppings` | Local order snapshots |
 
