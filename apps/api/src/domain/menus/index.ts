@@ -28,12 +28,14 @@ export type {
 } from './pizzeria-menu-gateway.js'
 export {
   DEFAULT_MENU_CACHE_WARM_INTERVAL_MS,
+  DEFAULT_MENU_CACHE_WARM_RETRY_MAX_MS,
+  DEFAULT_MENU_CACHE_WARM_RETRY_MIN_MS,
   MenuCacheWarmer
 } from './menu-cache-warmer.js'
 export type {
   MenuCacheWarmerOptions,
   MenuWarmClient,
-  MenuWarmWarn
+  MenuWarmLog
 } from './menu-cache-warmer.js'
 export {
   DEFAULT_UPSTREAM_MIN_INTERVAL_MS,

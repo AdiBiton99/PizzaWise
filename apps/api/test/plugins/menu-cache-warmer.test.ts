@@ -26,6 +26,39 @@ test('does not warm menus during inject-based startup', async (t) => {
   assert.equal(pizzeriaCalls, 0)
 })
 
+test('does not block health while a background warm is in flight', async () => {
+  const app = Fastify({ logger: false })
+  app.get('/health', async () => ({ status: 'ok' }))
+
+  let released = false
+  await app.register(pizzeriaApiClient, {
+    pizzeriaApiClient: {
+      async getPizzerias () {
+        await new Promise<void>((resolve) => {
+          const timer = setInterval(() => {
+            if (released) {
+              clearInterval(timer)
+              resolve()
+            }
+          }, 10)
+        })
+        return []
+      },
+      async getMenu () {
+        throw new Error('Unexpected menu call')
+      }
+    }
+  })
+  await app.register(menuCacheWarmer)
+  await app.listen({ port: 0, host: '127.0.0.1' })
+
+  const health = await app.inject({ method: 'GET', url: '/health' })
+  assert.equal(health.statusCode, 200)
+
+  released = true
+  await app.close()
+})
+
 test('starts warming after listen and stops the interval on close', async () => {
   let pizzeriaCalls = 0
   const app = Fastify({ logger: false })
