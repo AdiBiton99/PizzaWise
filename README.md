@@ -11,7 +11,7 @@ The browser uses the PizzaWise backend, which integrates with the external Pizze
 
 - Build a pizza (size, crust, sauce, toppings)
 - Search an address or reverse-geocode the current location
-- Rank nearby shops that can make that pizza (price, distance, or ETA)
+- Rank nearby pizzerias that can make that pizza (price, distance, or ETA)
 - Keep partial results when some menus fail
 - Register / log in with server-side sessions
 - User profiles, saved favorites, and order history
@@ -29,7 +29,7 @@ Same-origin `/api` is proxied to Fastify (Vite in development, nginx in Docker/R
 
 **Pizza Configuration → Location → Nearby Pizzerias → Menu Fetching → Normalization → Matching & Pricing → Ranking**
 
-Menus go through the reliability layer (upstream scheduler **concurrency 2**). Failed shops get a short recovery pass; still-failed shops become `uncheckedPizzeriaCount` instead of failing the request.
+Menus go through the reliability layer (controlled upstream concurrency). Failed shops get a short recovery pass; still-failed shops become `uncheckedPizzeriaCount` instead of failing the request.
 
 Provider labels become **semantic tags**; matching is tag-based. Prices are normalized to ILS minor units (cents or decimal upstream shapes).
 
@@ -39,36 +39,21 @@ Default ranking weights: price 0.4, ETA 0.35, distance 0.25. A selected `priorit
 
 | Mechanism | Purpose |
 | --- | --- |
-| Retries | Up to 3 attempts on retryable upstream errors (backoff / `Retry-After`) |
+| Retries | Retry retryable upstream errors (backoff / `Retry-After`) |
 | Partial results | Rank shops that matched; count the rest as unchecked |
-| Directory cache | 30s fresh, 5 min stale-if-error |
-| Menu cache | 5 min fresh, 30 min stale-if-error |
+| Directory cache | Nearby pizzeria lookups, with stale-if-error |
+| Menu cache | Pizzeria menus, with stale-if-error |
 | Singleflight | One in-flight fetch per directory snapshot or pizzeria menu |
-| Scheduler | Queue menu upstream work, concurrency **2**, 50ms spacing, 429 cooldown |
-| Background warmer | Warm on listen; 4 min refresh after first success; 5–60s backoff if the directory fails |
+| Scheduler | Queue menu upstream work with controlled concurrency |
+| Background warmer | Warm caches on startup and refresh them in the background |
 
 Caches are **in-process**. They are not shared across API instances and reset on restart.
 
-## Measured warm-cache behavior
-
-One **warm-cache** burst of 20 concurrent Compare requests (local, cache already filled):
-
-| | |
-| --- | --- |
-| Concurrent requests | 20 |
-| Successful | 20 / 20 |
-| Average | ~51 ms |
-| p95 | ~72 ms |
-| Ranked payloads | identical |
-| Upstream directory / menu calls during the burst | **0** |
-
-This is that test, not a production-scale claim. Cold cache and multi-instance behavior were not measured here.
-
 ## Authentication & Data
 
-Argon2id passwords. Session cookie `pizzawise_session`: httpOnly, `SameSite=Lax`, 30-day TTL, `Secure` in production. MySQL stores the **token hash**, not the token. No JWT in `localStorage`.
+Argon2id passwords. Server-side sessions use an httpOnly cookie. MySQL stores the **token hash**, not the token. No JWT in `localStorage`.
 
-Favorites are named configurations (same tags as compare). `POST /api/orders` re-prices from the live menu and writes a `placed` snapshot. **No card charge, no shop notification.**
+Favorites are named configurations (same tags as compare). `POST /api/orders` re-prices from the live menu and writes a `placed` snapshot.
 
 Schema: `apps/api/src/db/schema.ts`. Migrations: `apps/api/drizzle/`. `DATABASE_URL` must be `mysql://` or `mysql2://`.
 
@@ -112,11 +97,6 @@ Vite proxies `/api` to `http://127.0.0.1:3000`.
 
 The app is typically at `http://127.0.0.1:5173`.
 
-```bash
-pnpm --filter @pizzawise/api db:generate   # after schema changes
-pnpm --filter @pizzawise/api db:migrate
-```
-
 ## Environment
 
 | Variable | Used by | Purpose |
@@ -153,11 +133,11 @@ Compose builds API (`:3000`) and web/nginx (`:8080` with `API_UPSTREAM=http://ap
 
 **Docker and Railway API startup do not run migrations.** Apply them as a setup step (`pnpm --filter @pizzawise/api db:migrate`) before relying on auth, favorites, or orders.
 
-Railway is three services: MySQL, API (`apps/api/Dockerfile`, listen `0.0.0.0`), web (`apps/web/Dockerfile`). `API_UPSTREAM` must be a **reachable API origin**. The current deployment uses the **public Railway API origin** (not documented here). nginx `proxy_read_timeout` is 180s. Keep Pizzeria keys on the API service only.
+Railway is three services: MySQL, API (`apps/api/Dockerfile`, listen `0.0.0.0`), web (`apps/web/Dockerfile`). `API_UPSTREAM` must be a **reachable API origin**. Keep Pizzeria keys on the API service only.
 
 ## Observability
 
-`GET /health` pings MySQL → `{ "status": "ok" }` or `503` `{ "status": "unhealthy" }`. Fastify/Pino logs request ids (`x-request-id` or generated `reqId`). Cookies, passwords, API keys, and session tokens are redacted. `trustProxy` is on. Compare debug counts are **API logs only**.
+`GET /health` pings MySQL → `{ "status": "ok" }` or `503` `{ "status": "unhealthy" }`. Fastify/Pino logs request ids (`x-request-id` or generated `reqId`). Cookies, passwords, API keys, and session tokens are redacted.
 
 ## Key Design Decisions
 
@@ -167,7 +147,7 @@ Railway is three services: MySQL, API (`apps/api/Dockerfile`, listen `0.0.0.0`),
 | Semantic tags, not raw labels | Shop names for the same option differ |
 | Partial compare results | One 429 should not empty the list |
 | In-process cache + warmer | Fits one API instance; no Redis |
-| Scheduler concurrency 2 + serial recovery | Protect the upstream, then retry failures |
+| Controlled upstream concurrency + recovery | Protect the upstream while recovering individual failures |
 | Local order snapshots | No payment/order vendor in the assignment |
 | Cookie sessions | Same-origin proxy; no token in JS storage |
 
@@ -178,4 +158,3 @@ Railway is three services: MySQL, API (`apps/api/Dockerfile`, listen `0.0.0.0`),
 - Orders do not charge or notify a shop
 - Upstream rate limits still apply
 - Locales are EN/HE only
-- The 20-request numbers are one warm-cache test, not an SLO
