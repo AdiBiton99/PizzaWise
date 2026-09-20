@@ -5,8 +5,8 @@ import {
   normalizePhone as normalizeContactPhone
 } from '../domain/phone.js'
 
-export const MIN_DISPLAY_NAME_LENGTH = 1
-export const MAX_DISPLAY_NAME_LENGTH = 80
+export const DEFAULT_PROFILE_DISPLAY_NAME = 'User'
+export const MAX_DEFAULT_DELIVERY_ADDRESS_LENGTH = 200
 export { MAX_PHONE_DIGITS, MIN_PHONE_DIGITS }
 
 export class ProfileValidationError extends Error {
@@ -16,9 +16,14 @@ export class ProfileValidationError extends Error {
   }
 }
 
+export interface ProfileBody {
+  readonly phone: string
+  readonly defaultDeliveryAddress: string | null
+}
+
 export function assertProfileBodyShape (
   body: unknown
-): asserts body is { displayName: string, phone: string } {
+): asserts body is ProfileBody {
   if (body === null || typeof body !== 'object' || Array.isArray(body)) {
     throw new ProfileValidationError('Profile body is invalid')
   }
@@ -27,25 +32,11 @@ export function assertProfileBodyShape (
   const keys = Object.keys(record)
   if (
     keys.length !== 2 ||
-    typeof record.displayName !== 'string' ||
-    typeof record.phone !== 'string'
+    typeof record.phone !== 'string' ||
+    !isOptionalAddress(record.defaultDeliveryAddress)
   ) {
     throw new ProfileValidationError('Profile body is invalid')
   }
-}
-
-export function normalizeDisplayName (displayName: string): string {
-  const normalized = displayName.trim()
-  if (
-    normalized.length < MIN_DISPLAY_NAME_LENGTH ||
-    normalized.length > MAX_DISPLAY_NAME_LENGTH
-  ) {
-    throw new ProfileValidationError(
-      `Display name must be between ${MIN_DISPLAY_NAME_LENGTH} and ${MAX_DISPLAY_NAME_LENGTH} characters`
-    )
-  }
-
-  return normalized
 }
 
 export function normalizePhone (phone: string): string {
@@ -57,4 +48,29 @@ export function normalizePhone (phone: string): string {
     }
     throw error
   }
+}
+
+export function normalizeDefaultDeliveryAddress (
+  address: string | null
+): string | null {
+  if (address === null) {
+    return null
+  }
+
+  const normalized = address.trim()
+  if (normalized.length === 0) {
+    return null
+  }
+
+  if (normalized.length > MAX_DEFAULT_DELIVERY_ADDRESS_LENGTH) {
+    throw new ProfileValidationError(
+      `Delivery address must not exceed ${MAX_DEFAULT_DELIVERY_ADDRESS_LENGTH} characters`
+    )
+  }
+
+  return normalized
+}
+
+function isOptionalAddress (value: unknown): value is string | null {
+  return value === null || typeof value === 'string'
 }

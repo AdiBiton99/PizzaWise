@@ -62,6 +62,9 @@ export function OrderCheckout({
         }
 
         setPhone((current) => (current === '' ? profile.phone : current))
+        setDeliveryAddress((current) =>
+          current === '' ? (profile.defaultDeliveryAddress ?? '') : current
+        )
       } catch (error) {
         if (cancelled) {
           return
@@ -132,6 +135,11 @@ export function OrderCheckout({
     }
   }
 
+  const canPlaceOrder =
+    validatePhone(phone) === null &&
+    (fulfillmentType === 'pickup' ||
+      validateDeliveryAddress(deliveryAddress) === null)
+
   return (
     <form
       className="account-form order-checkout"
@@ -197,7 +205,7 @@ export function OrderCheckout({
         </>
       )}
 
-      <button type="submit" disabled={isSubmitting}>
+      <button type="submit" disabled={isSubmitting || !canPlaceOrder}>
         {isSubmitting ? t('checkout.placing') : t('checkout.place')}
       </button>
 

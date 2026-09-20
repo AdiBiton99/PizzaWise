@@ -2,8 +2,8 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   assertProfileBodyShape,
-  MAX_DISPLAY_NAME_LENGTH,
-  normalizeDisplayName,
+  MAX_DEFAULT_DELIVERY_ADDRESS_LENGTH,
+  normalizeDefaultDeliveryAddress,
   normalizePhone,
   ProfileValidationError
 } from '../../src/profiles/profile-fields.js'
@@ -11,22 +11,25 @@ import {
 test('rejects a body with unknown keys', () => {
   assert.throws(
     () => assertProfileBodyShape({
-      displayName: 'Ada',
       phone: '0501234567',
+      defaultDeliveryAddress: null,
       userId: 'nope'
     }),
     ProfileValidationError
   )
 })
 
-test('trims a valid display name', () => {
-  assert.equal(normalizeDisplayName('  Ada  '), 'Ada')
+test('accepts a null or empty default delivery address', () => {
+  assert.equal(normalizeDefaultDeliveryAddress(null), null)
+  assert.equal(normalizeDefaultDeliveryAddress('   '), null)
+  assert.equal(normalizeDefaultDeliveryAddress('  10 Herzl St  '), '10 Herzl St')
 })
 
-test('rejects an empty or overlong display name', () => {
-  assert.throws(() => normalizeDisplayName('   '), ProfileValidationError)
+test('rejects an overlong default delivery address', () => {
   assert.throws(
-    () => normalizeDisplayName('a'.repeat(MAX_DISPLAY_NAME_LENGTH + 1)),
+    () => normalizeDefaultDeliveryAddress(
+      'x'.repeat(MAX_DEFAULT_DELIVERY_ADDRESS_LENGTH + 1)
+    ),
     ProfileValidationError
   )
 })

@@ -64,16 +64,16 @@ test('PUT creates a profile and GET returns it', async (t) => {
     url: '/api/profile',
     cookies,
     payload: {
-      displayName: '  Ada  ',
-      phone: '050 123-4567'
+      phone: '050 123-4567',
+      defaultDeliveryAddress: '  10 Herzl St  '
     }
   })
 
   assert.equal(created.statusCode, 200)
   assert.deepEqual(created.json(), {
     userId,
-    displayName: 'Ada',
-    phone: '0501234567'
+    phone: '0501234567',
+    defaultDeliveryAddress: '10 Herzl St'
   })
 
   const fetched = await app.inject({
@@ -93,19 +93,19 @@ test('PUT updates an existing profile and still returns 200', async (t) => {
     method: 'PUT',
     url: '/api/profile',
     cookies,
-    payload: { displayName: 'Ada', phone: '0501234567' }
+    payload: { phone: '0501234567', defaultDeliveryAddress: '10 Herzl St' }
   })
 
   const updated = await app.inject({
     method: 'PUT',
     url: '/api/profile',
     cookies,
-    payload: { displayName: 'Grace', phone: '+972501234567' }
+    payload: { phone: '+972501234567', defaultDeliveryAddress: null }
   })
 
   assert.equal(updated.statusCode, 200)
-  assert.equal(updated.json().displayName, 'Grace')
   assert.equal(updated.json().phone, '+972501234567')
+  assert.equal(updated.json().defaultDeliveryAddress, null)
 })
 
 test('PUT rejects extra properties and invalid fields', async (t) => {
@@ -117,8 +117,8 @@ test('PUT rejects extra properties and invalid fields', async (t) => {
     url: '/api/profile',
     cookies,
     payload: {
-      displayName: 'Ada',
       phone: '0501234567',
+      defaultDeliveryAddress: null,
       userId: randomUUID()
     }
   })
@@ -128,7 +128,7 @@ test('PUT rejects extra properties and invalid fields', async (t) => {
     method: 'PUT',
     url: '/api/profile',
     cookies,
-    payload: { displayName: 'Ada' }
+    payload: { phone: '0501234567' }
   })
   assert.equal(missing.statusCode, 400)
 
@@ -136,7 +136,7 @@ test('PUT rejects extra properties and invalid fields', async (t) => {
     method: 'PUT',
     url: '/api/profile',
     cookies,
-    payload: { displayName: '   ', phone: '123' }
+    payload: { phone: '123', defaultDeliveryAddress: null }
   })
   assert.equal(invalid.statusCode, 400)
 })
@@ -151,13 +151,13 @@ test('a user cannot read or change another user profile', async (t) => {
     method: 'PUT',
     url: '/api/profile',
     cookies: userA.cookies,
-    payload: { displayName: 'Ada', phone: '0501234567' }
+    payload: { phone: '0501234567', defaultDeliveryAddress: '10 Herzl St' }
   })
   await app.inject({
     method: 'PUT',
     url: '/api/profile',
     cookies: userB.cookies,
-    payload: { displayName: 'Grace', phone: '+972501234567' }
+    payload: { phone: '+972501234567', defaultDeliveryAddress: null }
   })
 
   const aGet = await app.inject({
@@ -172,14 +172,14 @@ test('a user cannot read or change another user profile', async (t) => {
   })
 
   assert.equal(aGet.json().userId, userA.userId)
-  assert.equal(aGet.json().displayName, 'Ada')
+  assert.equal(aGet.json().phone, '0501234567')
   assert.equal(bGet.json().userId, userB.userId)
-  assert.equal(bGet.json().displayName, 'Grace')
+  assert.equal(bGet.json().phone, '+972501234567')
 
   const aProfile = await profileStore.findByUserId(userA.userId)
   const bProfile = await profileStore.findByUserId(userB.userId)
-  assert.equal(aProfile?.displayName, 'Ada')
-  assert.equal(bProfile?.displayName, 'Grace')
+  assert.equal(aProfile?.phone, '0501234567')
+  assert.equal(bProfile?.phone, '+972501234567')
 })
 
 test('rejects an expired session and deletes it from the store', async (t) => {

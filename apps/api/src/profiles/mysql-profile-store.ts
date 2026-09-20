@@ -26,12 +26,14 @@ export class MysqlProfileStore implements ProfileStore {
       .values({
         userId: profile.userId,
         displayName: profile.displayName,
-        phone: profile.phone
+        phone: profile.phone,
+        defaultDeliveryAddress: profile.defaultDeliveryAddress
       })
       .onDuplicateKeyUpdate({
         set: {
           displayName: profile.displayName,
-          phone: profile.phone
+          phone: profile.phone,
+          defaultDeliveryAddress: profile.defaultDeliveryAddress
         }
       })
   }
@@ -41,6 +43,7 @@ function toProfileRecord (row: typeof profiles.$inferSelect): ProfileRecord {
   return {
     userId: row.userId,
     displayName: row.displayName,
-    phone: row.phone
+    phone: row.phone,
+    defaultDeliveryAddress: row.defaultDeliveryAddress
   }
 }

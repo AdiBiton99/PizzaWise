@@ -7,6 +7,7 @@ test('profiles.user_id is the primary key and cascades from users.id', () => {
   assert.equal(profiles.userId.primary, true)
   assert.equal(profiles.displayName.isUnique, false)
   assert.equal(profiles.phone.isUnique, false)
+  assert.equal(profiles.defaultDeliveryAddress.notNull, false)
 
   const config = getTableConfig(profiles)
   assert.equal(config.foreignKeys.length, 1)

@@ -1,0 +1,1 @@
+ALTER TABLE `profiles` ADD `default_delivery_address` varchar(200);

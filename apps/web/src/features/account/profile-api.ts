@@ -11,8 +11,8 @@ type HttpFetch = (
 
 export type GetProfile = () => Promise<UserProfile | null>
 export type SaveProfile = (
-  displayName: string,
-  phone: string
+  phone: string,
+  defaultDeliveryAddress: string | null
 ) => Promise<UserProfile>
 
 export async function getProfile (
@@ -42,8 +42,8 @@ export async function getProfile (
 }
 
 export async function saveProfile (
-  displayName: string,
   phone: string,
+  defaultDeliveryAddress: string | null,
   fetch: HttpFetch = globalThis.fetch
 ): Promise<UserProfile> {
   const response = await request(
@@ -53,7 +53,7 @@ export async function saveProfile (
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ displayName, phone })
+      body: JSON.stringify({ phone, defaultDeliveryAddress })
     },
     fetch
   )
@@ -134,7 +134,8 @@ function isUserProfile (value: unknown): value is UserProfile {
   return (
     typeof record.userId === 'string' &&
     record.userId.length > 0 &&
-    typeof record.displayName === 'string' &&
-    typeof record.phone === 'string'
+    typeof record.phone === 'string' &&
+    (record.defaultDeliveryAddress === null ||
+      typeof record.defaultDeliveryAddress === 'string')
   )
 }

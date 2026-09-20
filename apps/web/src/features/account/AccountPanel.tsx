@@ -216,12 +216,15 @@ export function AccountPanel({
     }
   }
 
-  async function handleSaveProfile(displayName: string, phone: string) {
+  async function handleSaveProfile(
+    phone: string,
+    defaultDeliveryAddress: string | null
+  ) {
     setProfileBusy(true)
     setProfileError(null)
 
     try {
-      const saved = await saveProfile(displayName, phone)
+      const saved = await saveProfile(phone, defaultDeliveryAddress)
       setProfile(saved)
       setProfileFormKey((key) => key + 1)
     } catch (error) {
@@ -276,17 +279,24 @@ export function AccountPanel({
 
       {sessionStatus === 'ready' && user !== null && (
         <div className="account-signed-in">
-          <p>{t('account.signedInAs', { email: user.email })}</p>
-          <button type="button" disabled={authBusy} onClick={() => void handleLogout()}>
-            {authBusy ? t('account.working') : t('account.logout')}
-          </button>
+          <div className="account-identity">
+            <dl>
+              <div>
+                <dt>{t('account.email')}</dt>
+                <dd>{user.email}</dd>
+              </div>
+            </dl>
+            <button type="button" disabled={authBusy} onClick={() => void handleLogout()}>
+              {authBusy ? t('account.working') : t('account.logout')}
+            </button>
+          </div>
           <ProfileForm
             key={profileFormKey}
             profile={profile}
             isBusy={profileBusy}
             errorMessage={profileError}
-            onSave={(displayName, phone) => {
-              void handleSaveProfile(displayName, phone)
+            onSave={(phone, defaultDeliveryAddress) => {
+              void handleSaveProfile(phone, defaultDeliveryAddress)
             }}
           />
         </div>

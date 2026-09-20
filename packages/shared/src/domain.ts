@@ -237,12 +237,12 @@ export interface PublicUser {
 }
 
 /**
- * Authenticated user's profile fields. Delivery address is not stored here.
+ * Authenticated user's saved checkout contact fields.
  */
 export interface UserProfile {
   readonly userId: string
-  readonly displayName: string
   readonly phone: string
+  readonly defaultDeliveryAddress: string | null
 }
 
 /**

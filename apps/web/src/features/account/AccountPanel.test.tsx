@@ -16,8 +16,8 @@ const USER: PublicUser = {
 
 const PROFILE: UserProfile = {
   userId: USER.id,
-  displayName: 'Ada',
-  phone: '0501234567'
+  phone: '0501234567',
+  defaultDeliveryAddress: '10 Herzl St'
 }
 
 describe('AccountPanel', () => {
@@ -46,11 +46,11 @@ describe('AccountPanel', () => {
       getProfile
     })
 
-    expect(await screen.findByText('Signed in as user@example.com')).toBeTruthy()
+    expect(await screen.findByText('user@example.com')).toBeTruthy()
     expect(getProfile).toHaveBeenCalledOnce()
     expect(
       screen.getByText(
-        'No profile saved yet. Add a display name and phone number.'
+        'Save a phone number and optional default delivery address for checkout.'
       )
     ).toBeTruthy()
     expect(onUserChange).toHaveBeenCalledWith(USER)
@@ -65,16 +65,16 @@ describe('AccountPanel', () => {
       saveProfile
     })
 
-    await screen.findByText('Signed in as user@example.com')
-    fireEvent.change(screen.getByLabelText('Display name'), {
-      target: { value: 'Ada' }
-    })
+    await screen.findByText('user@example.com')
     fireEvent.change(screen.getByLabelText('Phone'), {
       target: { value: '050 123-4567' }
     })
+    fireEvent.change(screen.getByLabelText('Default delivery address'), {
+      target: { value: '10 Herzl St' }
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Save profile' }))
 
-    expect(saveProfile).toHaveBeenCalledWith('Ada', '050 123-4567')
+    expect(saveProfile).toHaveBeenCalledWith('050 123-4567', '10 Herzl St')
     expect(await screen.findByDisplayValue('0501234567')).toBeTruthy()
   })
 
@@ -90,7 +90,7 @@ describe('AccountPanel', () => {
       logoutUser
     })
 
-    await screen.findByText('Signed in as user@example.com')
+    await screen.findByText('user@example.com')
     fireEvent.click(screen.getByRole('button', { name: 'Log out' }))
 
     expect(await screen.findByLabelText('Email')).toBeTruthy()
@@ -132,7 +132,7 @@ describe('AccountPanel', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
-    expect(await screen.findByText('Signed in as user@example.com')).toBeTruthy()
+    expect(await screen.findByText('user@example.com')).toBeTruthy()
     expect(registerUser).toHaveBeenCalledWith('user@example.com', 'password1')
     expect(getProfile).toHaveBeenCalledOnce()
     expect(onUserChange).toHaveBeenCalledWith(USER)
@@ -161,11 +161,13 @@ describe('AccountPanel', () => {
     const loginButtons = screen.getAllByRole('button', { name: 'Log in' })
     fireEvent.click(loginButtons[loginButtons.length - 1] as HTMLElement)
 
-    expect(await screen.findByText('Signed in as user@example.com')).toBeTruthy()
+    expect(await screen.findByText('user@example.com')).toBeTruthy()
     expect(loginUser).toHaveBeenCalledWith('user@example.com', 'password1')
     expect(getProfile).toHaveBeenCalledOnce()
     expect(onUserChange).toHaveBeenCalledWith(USER)
-    expect(screen.getByDisplayValue('Ada')).toBeTruthy()
+    expect(screen.getByDisplayValue('0501234567')).toBeTruthy()
+    expect(screen.getByDisplayValue('10 Herzl St')).toBeTruthy()
+    expect(screen.queryByLabelText('Display name')).toBeNull()
   })
 })
 

@@ -1,8 +1,6 @@
 export const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export const MIN_PASSWORD_LENGTH = 8
 export const MAX_PASSWORD_LENGTH = 128
-export const MIN_DISPLAY_NAME_LENGTH = 1
-export const MAX_DISPLAY_NAME_LENGTH = 80
 export const MIN_PHONE_DIGITS = 8
 export const MAX_PHONE_DIGITS = 15
 
@@ -23,20 +21,6 @@ export function validatePassword (
     password.length > MAX_PASSWORD_LENGTH
   ) {
     return 'validation.passwordLength'
-  }
-
-  return null
-}
-
-export function validateDisplayName (
-  displayName: string
-): 'validation.displayNameLength' | null {
-  const normalized = displayName.trim()
-  if (
-    normalized.length < MIN_DISPLAY_NAME_LENGTH ||
-    normalized.length > MAX_DISPLAY_NAME_LENGTH
-  ) {
-    return 'validation.displayNameLength'
   }
 
   return null

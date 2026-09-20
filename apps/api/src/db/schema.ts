@@ -23,7 +23,8 @@ export const profiles = mysqlTable('profiles', {
     .primaryKey()
     .references(() => users.id, { onDelete: 'cascade' }),
   displayName: varchar('display_name', { length: 80 }).notNull(),
-  phone: varchar('phone', { length: 20 }).notNull()
+  phone: varchar('phone', { length: 20 }).notNull(),
+  defaultDeliveryAddress: varchar('default_delivery_address', { length: 200 })
 })
 
 export const favoritePizzas = mysqlTable(

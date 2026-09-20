@@ -210,12 +210,13 @@ export const en = {
   'account.title': 'Account',
   'account.titleGuest': 'Log in or sign up',
   'account.lead':
-    'Save favorites, place orders, and keep a phone number handy for checkout.',
+    'Save a phone number and default delivery address for faster checkout.',
   'account.leadGuest':
-    'Save favorites, place orders, and keep a phone number handy for checkout.',
+    'Save favorites, place orders, and keep checkout details handy.',
   'account.heading': 'Account',
   'account.retry': 'Retry',
   'account.signedInAs': 'Signed in as {email}',
+  'account.email': 'Email',
   'account.logout': 'Log out',
   'account.working': 'Working…',
   'account.sessionFailed': 'Could not restore the current session.',
@@ -236,19 +237,17 @@ export const en = {
   'auth.invalidCredentials': 'Invalid email or password',
   'auth.invalidDetails': 'Account details are invalid.',
 
-  'profile.heading': 'Profile',
+  'profile.heading': 'Checkout details',
   'profile.empty':
-    'No profile saved yet. Add a display name and phone number.',
-  'profile.displayName': 'Display name',
+    'Save a phone number and optional default delivery address for checkout.',
   'profile.phone': 'Phone',
+  'profile.address': 'Default delivery address',
   'profile.save': 'Save profile',
   'profile.saving': 'Saving…',
 
   'validation.emailInvalid': 'Email is invalid',
   'validation.passwordLength':
     'Password must be between {min} and {max} characters',
-  'validation.displayNameLength':
-    'Display name must be between {min} and {max} characters',
   'validation.phoneInvalid': 'Phone is invalid',
   'validation.favoriteNameLength':
     'Favorite name must be between {min} and {max} characters',
@@ -528,12 +527,13 @@ export const he: { readonly [K in MessageKey]: string } = {
   'account.title': 'החשבון שלי',
   'account.titleGuest': 'התחברו ל-PizzaWise',
   'account.lead':
-    'כאן תוכלו לעדכן את הפרטים שלכם ולנהל מועדפים והזמנות.',
+    'שמרו מספר טלפון וכתובת משלוח ברירת מחדל כדי להזמין מהר יותר.',
   'account.leadGuest':
-    'שמרו פיצות מועדפות, צפו בהזמנות קודמות והזמינו בקלות.',
+    'שמרו פיצות מועדפות, הזמינו, ושמרו פרטי משלוח לקופה.',
   'account.heading': 'חשבון',
   'account.retry': 'נסו שוב',
   'account.signedInAs': 'מחוברים בתור {email}',
+  'account.email': 'אימייל',
   'account.logout': 'התנתקות',
   'account.working': 'רגע…',
   'account.sessionFailed': 'לא הצלחנו להתחבר מחדש.',
@@ -554,17 +554,15 @@ export const he: { readonly [K in MessageKey]: string } = {
   'auth.invalidCredentials': 'האימייל או הסיסמה שגויים',
   'auth.invalidDetails': 'בדקו את הפרטים ונסו שוב.',
 
-  'profile.heading': 'הפרטים שלי',
-  'profile.empty': 'עדיין לא שמרתם פרטים. הוסיפו שם ומספר טלפון.',
-  'profile.displayName': 'שם',
+  'profile.heading': 'פרטי הזמנה',
+  'profile.empty': 'שמרו מספר טלפון וכתובת משלוח אופציונלית לקופה.',
   'profile.phone': 'טלפון',
+  'profile.address': 'כתובת משלוח ברירת מחדל',
   'profile.save': 'שמירת פרטים',
   'profile.saving': 'שומר…',
 
   'validation.emailInvalid': 'כתובת האימייל לא תקינה',
   'validation.passwordLength': 'הסיסמה צריכה להיות בין {min} ל־{max} תווים',
-  'validation.displayNameLength':
-    'השם צריך להיות בין {min} ל־{max} תווים',
   'validation.phoneInvalid': 'מספר הטלפון אינו תקין',
   'validation.favoriteNameLength':
     'שם המועדף חייב להיות בין {min} ל־{max} תווים',

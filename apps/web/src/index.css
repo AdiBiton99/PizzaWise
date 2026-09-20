@@ -668,6 +668,53 @@ dd {
   max-width: 34rem;
 }
 
+.location-card {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.account-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+}
+
+.account-identity dl {
+  margin: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.account-identity div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  align-items: baseline;
+}
+
+.account-identity dt,
+.account-identity dd {
+  margin: 0;
+}
+
+.account-identity dt {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.account-signed-in {
+  gap: 0.85rem;
+}
+
+.account-form h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
 .location-selector form,
 .account-form {
   display: grid;

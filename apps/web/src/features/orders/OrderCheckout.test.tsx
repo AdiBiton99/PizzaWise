@@ -16,8 +16,8 @@ const USER: PublicUser = {
 
 const PROFILE: UserProfile = {
   userId: USER.id,
-  displayName: 'Ada',
-  phone: '0501234567'
+  phone: '0501234567',
+  defaultDeliveryAddress: '10 Herzl St'
 }
 
 const PIZZA: PizzaConfiguration = {
@@ -41,7 +41,7 @@ const ORDER: Order = {
 }
 
 describe('OrderCheckout', () => {
-  it('prefills phone from profile and does not save the profile', async () => {
+  it('prefills phone and address from profile without saving the profile', async () => {
     const getProfile = vi.fn(async () => PROFILE)
     const createOrder = vi.fn(async () => ORDER)
     const onOrderPlaced = vi.fn()
@@ -49,8 +49,10 @@ describe('OrderCheckout', () => {
     renderCheckout({ getProfile, createOrder, onOrderPlaced })
 
     expect(await screen.findByDisplayValue('0501234567')).toBeTruthy()
-    fireEvent.change(screen.getByLabelText('Phone'), {
-      target: { value: '0509999999' }
+    fireEvent.click(screen.getByLabelText('Delivery'))
+    expect(screen.getByDisplayValue('10 Herzl St')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Delivery address'), {
+      target: { value: '  12 Allenby  ' }
     })
     fireEvent.click(screen.getByRole('button', { name: 'Place order' }))
 
@@ -58,15 +60,16 @@ describe('OrderCheckout', () => {
       expect(createOrder).toHaveBeenCalledWith({
         pizzeriaId: 'p2',
         configuration: PIZZA,
-        phone: '0509999999',
-        fulfillmentType: 'pickup'
+        phone: '0501234567',
+        fulfillmentType: 'delivery',
+        deliveryAddress: '12 Allenby'
       })
     })
-    expect(onOrderPlaced).toHaveBeenCalledWith(ORDER)
     expect(getProfile).toHaveBeenCalledOnce()
+    expect(onOrderPlaced).toHaveBeenCalled()
   })
 
-  it('leaves phone empty when the profile is missing', async () => {
+  it('leaves required fields empty and disables Place order when the profile is missing', async () => {
     renderCheckout({ getProfile: async () => null })
 
     await waitFor(() => {
@@ -75,7 +78,13 @@ describe('OrderCheckout', () => {
     expect(
       (screen.getByRole('button', { name: 'Place order' }) as HTMLButtonElement)
         .disabled
-    ).toBe(false)
+    ).toBe(true)
+
+    fireEvent.click(screen.getByLabelText('Delivery'))
+    expect(
+      (screen.getByRole('button', { name: 'Place order' }) as HTMLButtonElement)
+        .disabled
+    ).toBe(true)
   })
 
   it('keeps checkout usable when profile loading fails', async () => {
@@ -92,7 +101,7 @@ describe('OrderCheckout', () => {
       expect(
         (screen.getByRole('button', { name: 'Place order' }) as HTMLButtonElement)
           .disabled
-      ).toBe(false)
+      ).toBe(true)
     })
     expect((screen.getByLabelText('Phone') as HTMLInputElement).value).toBe('')
     expect(onUserChange).not.toHaveBeenCalled()

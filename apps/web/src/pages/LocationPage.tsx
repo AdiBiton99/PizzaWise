@@ -18,15 +18,13 @@ export function LocationPage() {
         <h1>{t('location.title')}</h1>
         <p>{t('location.lead')}</p>
       </header>
-      <div className="surface-card">
+      <div className="surface-card location-card">
         <LocationSelector
           location={location}
           locationLabel={locationLabel}
-          radiusKm={radiusKm}
           onLocationSelected={setLocation}
-        >
-          <RadiusPicker radiusKm={radiusKm} onChange={setRadiusKm} />
-        </LocationSelector>
+        />
+        <RadiusPicker radiusKm={radiusKm} onChange={setRadiusKm} />
       </div>
       <div className="builder-actions">
         <Link className="button-secondary" to="/build">

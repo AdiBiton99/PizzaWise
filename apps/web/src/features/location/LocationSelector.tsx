@@ -1,7 +1,6 @@
 import type { LocationSearchResult, UserLocation } from '@pizzawise/shared'
-import { type FormEvent, type ReactNode, useState } from 'react'
+import { type FormEvent, useState } from 'react'
 import { translateEn, type MessageKey, useTranslate } from '../../i18n'
-import { radiusOptionLabel, type ComparisonRadiusKm } from '../comparison/comparison-options'
 import {
   BrowserLocationError,
   type BrowserLocationErrorCode,
@@ -23,12 +22,10 @@ import {
 interface LocationSelectorProps {
   readonly location: UserLocation | null
   readonly locationLabel?: string | null
-  readonly radiusKm?: ComparisonRadiusKm
   readonly onLocationSelected: (location: UserLocation, label: string) => void
   readonly geolocation?: BrowserGeolocation | null
   readonly searchLocations?: SearchLocations
   readonly reverseGeocode?: ReverseGeocode
-  readonly children?: ReactNode
 }
 
 const ERROR_KEYS: Record<BrowserLocationErrorCode, MessageKey> = {
@@ -42,12 +39,10 @@ const ERROR_KEYS: Record<BrowserLocationErrorCode, MessageKey> = {
 export function LocationSelector({
   location,
   locationLabel = null,
-  radiusKm,
   onLocationSelected,
   geolocation,
   searchLocations = searchManualLocations,
-  reverseGeocode = reverseGeocodeLocation,
-  children
+  reverseGeocode = reverseGeocodeLocation
 }: LocationSelectorProps) {
   const t = useTranslate()
   const [isEditing, setIsEditing] = useState(false)
@@ -140,13 +135,6 @@ export function LocationSelector({
         <div className="selected-location-summary">
           <h2 id="location-heading">{t('location.yourLocation')}</h2>
           <p>{displayLabel}</p>
-          {radiusKm !== undefined && (
-            <p>
-              {t('location.searchRadiusValue', {
-                radius: radiusOptionLabel(radiusKm, t)
-              })}
-            </p>
-          )}
           <button
             type="button"
             className="button-secondary"
@@ -158,49 +146,44 @@ export function LocationSelector({
       ) : (
         <>
           <h2 id="location-heading">{t('location.heading')}</h2>
-          <div className="location-layout">
-            <div>
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={() => void handleUseLocation()}
-              >
-                {isLoading ? t('location.locating') : t('location.useMine')}
-              </button>
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={() => void handleUseLocation()}
+          >
+            {isLoading ? t('location.locating') : t('location.useMine')}
+          </button>
 
-              <p>{t('location.or')}</p>
+          <p>{t('location.or')}</p>
 
-              <form onSubmit={(event) => void handleManualSearch(event)}>
-                <label htmlFor="manual-location">{t('location.cityOrAddress')}</label>
-                <input
-                  id="manual-location"
-                  type="text"
-                  value={manualQuery}
-                  maxLength={200}
-                  onChange={(event) => setManualQuery(event.target.value)}
-                />
-                <button type="submit" disabled={isSearching}>
-                  {isSearching ? t('location.searching') : t('location.search')}
-                </button>
-              </form>
+          <form onSubmit={(event) => void handleManualSearch(event)}>
+            <label htmlFor="manual-location">{t('location.cityOrAddress')}</label>
+            <input
+              id="manual-location"
+              type="text"
+              value={manualQuery}
+              maxLength={200}
+              onChange={(event) => setManualQuery(event.target.value)}
+            />
+            <button type="submit" disabled={isSearching}>
+              {isSearching ? t('location.searching') : t('location.search')}
+            </button>
+          </form>
 
-              {results.length > 0 && (
-                <ul aria-label={t('location.resultsAria')}>
-                  {results.map((result, index) => (
-                    <li key={`${result.label}-${index}`}>
-                      <button
-                        type="button"
-                        onClick={() => handleCandidateSelected(result)}
-                      >
-                        {result.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            {children}
-          </div>
+          {results.length > 0 && (
+            <ul aria-label={t('location.resultsAria')}>
+              {results.map((result, index) => (
+                <li key={`${result.label}-${index}`}>
+                  <button
+                    type="button"
+                    onClick={() => handleCandidateSelected(result)}
+                  >
+                    {result.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </>
       )}
 

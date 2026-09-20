@@ -2,6 +2,7 @@ export interface ProfileRecord {
   readonly userId: string
   readonly displayName: string
   readonly phone: string
+  readonly defaultDeliveryAddress: string | null
 }
 
 export interface ProfileStore {

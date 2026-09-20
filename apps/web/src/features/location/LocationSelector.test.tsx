@@ -98,7 +98,6 @@ describe('LocationSelector', () => {
     const { rerender } = render(
       <LocationSelector
         location={null}
-        radiusKm={5}
         geolocation={{ getCurrentPosition }}
         reverseGeocode={async () => null}
         onLocationSelected={vi.fn()}
@@ -115,7 +114,6 @@ describe('LocationSelector', () => {
       <LocationSelector
         location={selected}
         locationLabel="Current location (32.081, 34.781)"
-        radiusKm={5}
         geolocation={{ getCurrentPosition }}
         onLocationSelected={vi.fn()}
       />
@@ -123,7 +121,7 @@ describe('LocationSelector', () => {
 
     expect(screen.getByText('Your location')).toBeTruthy()
     expect(screen.getByText('Current location (32.081, 34.781)')).toBeTruthy()
-    expect(screen.getByText('Search radius: 5 km')).toBeTruthy()
+    expect(screen.queryByText('Search radius: 5 km')).toBeNull()
     expect(screen.queryByLabelText('City or address')).toBeNull()
     expect(screen.queryByText('Location selected.')).toBeNull()
     expect(screen.queryByText(/32\.0809|34\.7806/)).toBeNull()
@@ -134,7 +132,6 @@ describe('LocationSelector', () => {
       <LocationSelector
         location={{ latitude: 32.0809, longitude: 34.7806 }}
         locationLabel="Dizengoff Street 100, Tel Aviv-Yafo, Israel"
-        radiusKm={10}
         geolocation={null}
         onLocationSelected={vi.fn()}
       />

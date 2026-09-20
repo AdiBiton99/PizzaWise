@@ -3,8 +3,8 @@ import { getProfile, saveProfile } from './profile-api'
 
 const PROFILE = {
   userId: '11111111-1111-4111-8111-111111111111',
-  displayName: 'Ada',
-  phone: '0501234567'
+  phone: '0501234567',
+  defaultDeliveryAddress: '10 Herzl St'
 }
 
 describe('profile API', () => {
@@ -25,15 +25,15 @@ describe('profile API', () => {
       expect(init?.method).toBe('PUT')
       expect(init?.credentials).toBe('include')
       expect(JSON.parse(String(init?.body))).toEqual({
-        displayName: 'Ada',
-        phone: '050 123-4567'
+        phone: '050 123-4567',
+        defaultDeliveryAddress: '  10 Herzl St  '
       })
       return jsonResponse(PROFILE)
     })
 
-    await expect(saveProfile('Ada', '050 123-4567', fetch)).resolves.toEqual(
-      PROFILE
-    )
+    await expect(
+      saveProfile('050 123-4567', '  10 Herzl St  ', fetch)
+    ).resolves.toEqual(PROFILE)
   })
 
   it('maps validation failures to invalid profile errors', async () => {
@@ -41,7 +41,7 @@ describe('profile API', () => {
       jsonResponse({ message: 'Phone is invalid' }, 400)
     )
 
-    await expect(saveProfile('Ada', 'nope', fetch)).rejects.toMatchObject({
+    await expect(saveProfile('nope', null, fetch)).rejects.toMatchObject({
       code: 'invalid',
       message: 'Phone is invalid'
     })

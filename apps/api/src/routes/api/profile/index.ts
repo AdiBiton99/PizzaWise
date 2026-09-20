@@ -1,25 +1,22 @@
 import type { UserProfile } from '@pizzawise/shared'
 import type { FastifyPluginAsync } from 'fastify'
 import {
+  DEFAULT_PROFILE_DISPLAY_NAME,
   assertProfileBodyShape,
-  normalizeDisplayName,
+  normalizeDefaultDeliveryAddress,
   normalizePhone,
-  ProfileValidationError
+  ProfileValidationError,
+  type ProfileBody
 } from '../../../profiles/profile-fields.js'
 import type { ProfileRecord } from '../../../profiles/profile-store.js'
 
-interface ProfileBody {
-  displayName: string
-  phone: string
-}
-
 const profileBodySchema = {
   type: 'object',
-  required: ['displayName', 'phone'],
+  required: ['phone', 'defaultDeliveryAddress'],
   additionalProperties: false,
   properties: {
-    displayName: { type: 'string' },
-    phone: { type: 'string' }
+    phone: { type: 'string' },
+    defaultDeliveryAddress: { type: ['string', 'null'] }
   }
 } as const
 
@@ -54,11 +51,13 @@ const profile: FastifyPluginAsync = async (fastify): Promise<void> => {
       schema: { body: profileBodySchema }
     },
     async (request) => {
-      let displayName: string
       let phone: string
+      let defaultDeliveryAddress: string | null
       try {
-        displayName = normalizeDisplayName(request.body.displayName)
         phone = normalizePhone(request.body.phone)
+        defaultDeliveryAddress = normalizeDefaultDeliveryAddress(
+          request.body.defaultDeliveryAddress
+        )
       } catch (error) {
         if (error instanceof ProfileValidationError) {
           throw fastify.httpErrors.badRequest(error.message)
@@ -66,10 +65,12 @@ const profile: FastifyPluginAsync = async (fastify): Promise<void> => {
         throw error
       }
 
+      const existing = await fastify.profileStore.findByUserId(request.user.id)
       const profileRecord: ProfileRecord = {
         userId: request.user.id,
-        displayName,
-        phone
+        displayName: existing?.displayName ?? DEFAULT_PROFILE_DISPLAY_NAME,
+        phone,
+        defaultDeliveryAddress
       }
       await fastify.profileStore.upsert(profileRecord)
       return toUserProfile(profileRecord)
@@ -80,8 +81,8 @@ const profile: FastifyPluginAsync = async (fastify): Promise<void> => {
 function toUserProfile (record: ProfileRecord): UserProfile {
   return {
     userId: record.userId,
-    displayName: record.displayName,
-    phone: record.phone
+    phone: record.phone,
+    defaultDeliveryAddress: record.defaultDeliveryAddress
   }
 }
 
