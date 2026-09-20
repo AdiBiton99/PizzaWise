@@ -1,6 +1,12 @@
 import type { UserProfile } from '@pizzawise/shared'
 import { type FormEvent, useState } from 'react'
-import { validateDisplayName, validatePhone } from './account-validation'
+import { useTranslate, type MessageKey } from '../../i18n'
+import {
+  MAX_DISPLAY_NAME_LENGTH,
+  MIN_DISPLAY_NAME_LENGTH,
+  validateDisplayName,
+  validatePhone
+} from './account-validation'
 
 interface ProfileFormProps {
   readonly profile: UserProfile | null
@@ -15,38 +21,45 @@ export function ProfileForm({
   errorMessage,
   onSave
 }: ProfileFormProps) {
+  const t = useTranslate()
   const [displayName, setDisplayName] = useState(profile?.displayName ?? '')
   const [phone, setPhone] = useState(profile?.phone ?? '')
-  const [validationMessage, setValidationMessage] = useState<string | null>(null)
+  const [validationKey, setValidationKey] = useState<MessageKey | null>(null)
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const nameError = validateDisplayName(displayName)
     if (nameError !== null) {
-      setValidationMessage(nameError)
+      setValidationKey(nameError)
       return
     }
 
     const phoneError = validatePhone(phone)
     if (phoneError !== null) {
-      setValidationMessage(phoneError)
+      setValidationKey(phoneError)
       return
     }
 
-    setValidationMessage(null)
+    setValidationKey(null)
     onSave(displayName.trim(), phone)
   }
 
-  const alertMessage = validationMessage ?? errorMessage
+  const alertMessage =
+    validationKey === null
+      ? errorMessage
+      : validationKey === 'validation.displayNameLength'
+        ? t(validationKey, {
+            min: MIN_DISPLAY_NAME_LENGTH,
+            max: MAX_DISPLAY_NAME_LENGTH
+          })
+        : t(validationKey)
 
   return (
     <form className="account-form" noValidate onSubmit={handleSubmit}>
-      <h3>Profile</h3>
-      {profile === null && (
-        <p>No profile saved yet. Add a display name and phone number.</p>
-      )}
+      <h3>{t('profile.heading')}</h3>
+      {profile === null && <p>{t('profile.empty')}</p>}
 
-      <label htmlFor="profile-display-name">Display name</label>
+      <label htmlFor="profile-display-name">{t('profile.displayName')}</label>
       <input
         id="profile-display-name"
         type="text"
@@ -57,7 +70,7 @@ export function ProfileForm({
         onChange={(event) => setDisplayName(event.target.value)}
       />
 
-      <label htmlFor="profile-phone">Phone</label>
+      <label htmlFor="profile-phone">{t('profile.phone')}</label>
       <input
         id="profile-phone"
         type="tel"
@@ -68,7 +81,7 @@ export function ProfileForm({
       />
 
       <button type="submit" disabled={isBusy}>
-        {isBusy ? 'Saving…' : 'Save profile'}
+        {isBusy ? t('profile.saving') : t('profile.save')}
       </button>
 
       {alertMessage !== null && <p role="alert">{alertMessage}</p>}

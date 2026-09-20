@@ -9,16 +9,12 @@ import {
 describe('account validation', () => {
   it('matches the backend email, password, name, and phone rules', () => {
     expect(validateEmail('  User@Example.COM  ')).toBeNull()
-    expect(validateEmail('nope')).toBe('Email is invalid')
+    expect(validateEmail('nope')).toBe('validation.emailInvalid')
     expect(validatePassword('password1')).toBeNull()
-    expect(validatePassword('short')).toBe(
-      'Password must be between 8 and 128 characters'
-    )
+    expect(validatePassword('short')).toBe('validation.passwordLength')
     expect(validateDisplayName('  Ada  ')).toBeNull()
-    expect(validateDisplayName('   ')).toBe(
-      'Display name must be between 1 and 80 characters'
-    )
+    expect(validateDisplayName('   ')).toBe('validation.displayNameLength')
     expect(validatePhone('050 123-4567')).toBeNull()
-    expect(validatePhone('abc')).toBe('Phone is invalid')
+    expect(validatePhone('abc')).toBe('validation.phoneInvalid')
   })
 })

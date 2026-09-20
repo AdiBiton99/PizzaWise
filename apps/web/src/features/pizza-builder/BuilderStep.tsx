@@ -1,11 +1,10 @@
 import type { DesiredOptionTag } from '@pizzawise/shared'
-import type { PizzaOptionChoice } from './pizza-options'
 
 interface BuilderStepProps {
   readonly legend: string
   readonly inputType: 'radio' | 'checkbox'
   readonly name: string
-  readonly options: readonly PizzaOptionChoice[]
+  readonly options: readonly { readonly tag: DesiredOptionTag, readonly label: string }[]
   readonly selectedTags: readonly DesiredOptionTag[]
   readonly onToggle: (tag: DesiredOptionTag) => void
 }

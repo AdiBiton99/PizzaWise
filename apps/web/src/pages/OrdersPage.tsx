@@ -1,8 +1,10 @@
 import { Link } from 'react-router'
 import { useAppSession } from '../app/AppSession'
 import { OrderHistoryPanel } from '../features/orders/OrderHistoryPanel'
+import { useTranslate } from '../i18n'
 
 export function OrdersPage() {
+  const t = useTranslate()
   const { user, lastPlacedOrder, recentOrders, setUser } = useAppSession()
 
   if (user === null) {
@@ -12,9 +14,9 @@ export function OrdersPage() {
   return (
     <div className="page-stack">
       <header className="page-intro">
-        <p className="eyebrow">Past orders</p>
-        <h1>Order history</h1>
-        <p>Snapshots stay as they were placed—no live re-price on this page.</p>
+        <p className="eyebrow">{t('orders.eyebrow')}</p>
+        <h1>{t('orders.title')}</h1>
+        <p>{t('orders.lead')}</p>
       </header>
       <div className="surface-card">
         <OrderHistoryPanel
@@ -26,7 +28,7 @@ export function OrdersPage() {
         />
       </div>
       <Link className="button-secondary" to="/compare">
-        Back to compare
+        {t('orders.back')}
       </Link>
     </div>
   )

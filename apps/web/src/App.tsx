@@ -3,6 +3,7 @@ import { AppHeader } from './app/AppLayout'
 import { AppSessionProvider } from './app/AppSession'
 import { RequireAuth } from './app/RequireAuth'
 import { RequireLocation, RequirePizza } from './app/WorkflowGuards'
+import { LocaleProvider } from './i18n'
 import { AccountPage } from './pages/AccountPage'
 import { BuildPage } from './pages/BuildPage'
 import { CheckoutPage } from './pages/CheckoutPage'
@@ -27,8 +28,9 @@ function AppShell() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppSessionProvider>
+    <LocaleProvider>
+      <BrowserRouter>
+        <AppSessionProvider>
         <Routes>
           <Route element={<AppShell />}>
             <Route path="/" element={<HomePage />} />
@@ -49,8 +51,9 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
-      </AppSessionProvider>
-    </BrowserRouter>
+        </AppSessionProvider>
+      </BrowserRouter>
+    </LocaleProvider>
   )
 }
 

@@ -1,5 +1,8 @@
 import { type FormEvent, useState } from 'react'
+import { useTranslate, type MessageKey } from '../../i18n'
 import {
+  MAX_PASSWORD_LENGTH,
+  MIN_PASSWORD_LENGTH,
   normalizeEmailInput,
   validateEmail,
   validatePassword
@@ -20,40 +23,45 @@ export function AuthForm({
   initialMode = 'register',
   onSubmit
 }: AuthFormProps) {
+  const t = useTranslate()
   const [mode, setMode] = useState<AuthMode>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [validationMessage, setValidationMessage] = useState<string | null>(null)
+  const [validationKey, setValidationKey] = useState<MessageKey | null>(null)
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const emailError = validateEmail(email)
     if (emailError !== null) {
-      setValidationMessage(emailError)
+      setValidationKey(emailError)
       return
     }
 
     const passwordError = validatePassword(password)
     if (passwordError !== null) {
-      setValidationMessage(passwordError)
+      setValidationKey(passwordError)
       return
     }
 
-    setValidationMessage(null)
+    setValidationKey(null)
     onSubmit(mode, normalizeEmailInput(email), password)
   }
 
-  const alertMessage = validationMessage ?? errorMessage
+  const alertMessage =
+    validationKey === null
+      ? errorMessage
+      : validationKey === 'validation.passwordLength'
+        ? t(validationKey, {
+            min: MIN_PASSWORD_LENGTH,
+            max: MAX_PASSWORD_LENGTH
+          })
+        : t(validationKey)
 
   return (
     <form className="account-form" noValidate onSubmit={handleSubmit}>
-      <h3>{mode === 'login' ? 'Log in' : 'Sign up'}</h3>
-      <p>
-        {mode === 'login'
-          ? 'Welcome back. Use the account you already created.'
-          : 'Create an account to save favorites and place orders.'}
-      </p>
-      <div className="account-toggle" role="group" aria-label="Account action">
+      <h3>{mode === 'login' ? t('auth.login') : t('auth.signup')}</h3>
+      <p>{mode === 'login' ? t('auth.loginLead') : t('auth.signupLead')}</p>
+      <div className="account-toggle" role="group" aria-label={t('auth.actionGroup')}>
         <button
           type="button"
           data-mode="login"
@@ -61,7 +69,7 @@ export function AuthForm({
           disabled={isBusy}
           onClick={() => setMode('login')}
         >
-          Log in
+          {t('auth.login')}
         </button>
         <button
           type="button"
@@ -70,11 +78,11 @@ export function AuthForm({
           disabled={isBusy}
           onClick={() => setMode('register')}
         >
-          Sign up
+          {t('auth.signup')}
         </button>
       </div>
 
-      <label htmlFor="account-email">Email</label>
+      <label htmlFor="account-email">{t('auth.email')}</label>
       <input
         id="account-email"
         type="email"
@@ -84,7 +92,7 @@ export function AuthForm({
         onChange={(event) => setEmail(event.target.value)}
       />
 
-      <label htmlFor="account-password">Password</label>
+      <label htmlFor="account-password">{t('auth.password')}</label>
       <input
         id="account-password"
         type="password"
@@ -96,10 +104,10 @@ export function AuthForm({
 
       <button type="submit" disabled={isBusy}>
         {isBusy
-          ? 'Working…'
+          ? t('account.working')
           : mode === 'register'
-            ? 'Create account'
-            : 'Log in'}
+            ? t('auth.create')
+            : t('auth.login')}
       </button>
 
       {alertMessage !== null && <p role="alert">{alertMessage}</p>}

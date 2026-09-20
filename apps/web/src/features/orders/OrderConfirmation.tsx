@@ -1,7 +1,5 @@
-import {
-  pizzaOptionLabel,
-  type Order
-} from '@pizzawise/shared'
+import { type Order } from '@pizzawise/shared'
+import { optionLabel, useTranslate } from '../../i18n'
 import { formatPrice } from '../comparison/comparison-format'
 
 interface OrderConfirmationProps {
@@ -11,52 +9,57 @@ interface OrderConfirmationProps {
 
 export function OrderConfirmation({
   order,
-  heading = 'Order placed'
+  heading
 }: OrderConfirmationProps) {
+  const t = useTranslate()
   const toppingSummary =
     order.configuration.toppingTags.length === 0
-      ? 'None'
-      : order.configuration.toppingTags.map(pizzaOptionLabel).join(', ')
+      ? t('builder.none')
+      : order.configuration.toppingTags.map((tag) => optionLabel(t, tag)).join(', ')
 
   return (
     <div className="order-confirmation">
-      <h4>{heading}</h4>
+      <h4>{heading ?? t('confirm.placed')}</h4>
       <dl>
         <div>
-          <dt>Pizzeria</dt>
+          <dt>{t('confirm.pizzeria')}</dt>
           <dd>{order.pizzeriaName}</dd>
         </div>
         <div>
-          <dt>Total</dt>
-          <dd>{formatPrice(order.total)}</dd>
+          <dt>{t('confirm.total')}</dt>
+          <dd>{formatPrice(order.total, t)}</dd>
         </div>
         <div>
-          <dt>Fulfillment</dt>
+          <dt>{t('confirm.fulfillment')}</dt>
           <dd>
-            {order.fulfillmentType === 'delivery' ? 'Delivery' : 'Pickup'}
+            {order.fulfillmentType === 'delivery'
+              ? t('checkout.delivery')
+              : t('checkout.pickup')}
           </dd>
         </div>
         {order.deliveryAddress !== null && (
           <div>
-            <dt>Address</dt>
+            <dt>{t('confirm.address')}</dt>
             <dd>{order.deliveryAddress}</dd>
           </div>
         )}
         <div>
-          <dt>Phone</dt>
+          <dt>{t('confirm.phone')}</dt>
           <dd>{order.phone}</dd>
         </div>
         <div>
-          <dt>Pizza</dt>
+          <dt>{t('confirm.pizza')}</dt>
           <dd>
-            {pizzaOptionLabel(order.configuration.sizeTag)},{' '}
-            {pizzaOptionLabel(order.configuration.crustTag)},{' '}
-            {pizzaOptionLabel(order.configuration.sauceTag)}, {toppingSummary}
+            {optionLabel(t, order.configuration.sizeTag)},{' '}
+            {optionLabel(t, order.configuration.crustTag)},{' '}
+            {optionLabel(t, order.configuration.sauceTag)}, {toppingSummary}
           </dd>
         </div>
         <div>
-          <dt>Status</dt>
-          <dd>{order.status}</dd>
+          <dt>{t('confirm.status')}</dt>
+          <dd>
+            {order.status === 'placed' ? t('confirm.statusPlaced') : order.status}
+          </dd>
         </div>
       </dl>
     </div>

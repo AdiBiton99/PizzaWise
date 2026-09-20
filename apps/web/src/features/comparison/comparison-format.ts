@@ -1,21 +1,36 @@
 import type { EtaRange, Money } from '@pizzawise/shared'
+import { translateEn, type Translate } from '../../i18n'
 
-export function formatPrice (money: Money): string {
-  return `${(money.amountMinor / 100).toFixed(2)} ${money.currency}`
+export function formatPrice (
+  money: Money,
+  t: Translate = translateEn
+): string {
+  const amount = (money.amountMinor / 100).toFixed(2)
+  if (money.currency === 'ILS') {
+    return t('format.priceIls', { amount })
+  }
+
+  return t('format.price', { amount, currency: money.currency })
 }
 
-export function formatDistanceKm (distanceKm: number): string {
-  return `${distanceKm.toFixed(1)} km`
+export function formatDistanceKm (
+  distanceKm: number,
+  t: Translate = translateEn
+): string {
+  return t('format.km', { value: distanceKm.toFixed(1) })
 }
 
-export function formatEta (eta: EtaRange | null): string {
+export function formatEta (
+  eta: EtaRange | null,
+  t: Translate = translateEn
+): string {
   if (eta === null) {
-    return 'Unknown'
+    return t('format.etaUnknown')
   }
 
   if (eta.minMinutes === eta.maxMinutes) {
-    return `${eta.minMinutes} min`
+    return t('format.etaMinutes', { minutes: eta.minMinutes })
   }
 
-  return `${eta.minMinutes}–${eta.maxMinutes} min`
+  return t('format.etaRange', { min: eta.minMinutes, max: eta.maxMinutes })
 }

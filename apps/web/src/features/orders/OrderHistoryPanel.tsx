@@ -1,3 +1,4 @@
+import { useLocale, useTranslate } from '../../i18n'
 import type { Order, PublicUser } from '@pizzawise/shared'
 import { useCallback, useEffect, useState } from 'react'
 import { formatPrice } from '../comparison/comparison-format'
@@ -28,6 +29,8 @@ export function OrderHistoryPanel({
   listOrders = requestListOrders,
   getOrder = requestGetOrder
 }: OrderHistoryPanelProps) {
+  const t = useTranslate()
+  const { locale } = useLocale()
   const [fetchedOrders, setFetchedOrders] = useState<readonly Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -54,12 +57,12 @@ export function OrderHistoryPanel({
       setErrorMessage(
         error instanceof OrdersRequestError
           ? error.message
-          : 'Could not load orders.'
+          : t('orders.loadFailed')
       )
     } finally {
       setIsLoading(false)
     }
-  }, [handleUnauthorized, listOrders])
+  }, [handleUnauthorized, listOrders, t])
 
   useEffect(() => {
     let cancelled = false
@@ -104,7 +107,7 @@ export function OrderHistoryPanel({
       setDetailsError(
         error instanceof OrdersRequestError
           ? error.message
-          : 'Could not load the order.'
+          : t('confirm.loadFailed')
       )
     } finally {
       setIsLoadingDetails(false)
@@ -113,10 +116,10 @@ export function OrderHistoryPanel({
 
   return (
     <section className="order-history" aria-labelledby="order-history-heading" data-user-id={user.id}>
-      <h2 id="order-history-heading">Order History</h2>
+      <h2 id="order-history-heading">{t('orders.heading')}</h2>
 
       <div className="order-history-status" aria-live="polite" aria-busy={isLoading}>
-        {isLoading && <p>Loading orders…</p>}
+        {isLoading && <p>{t('orders.loading')}</p>}
         {errorMessage !== null && (
           <>
             <p role="alert">{errorMessage}</p>
@@ -127,13 +130,13 @@ export function OrderHistoryPanel({
                 void loadOrders()
               }}
             >
-              Retry
+              {t('orders.retry')}
             </button>
           </>
         )}
         {!isLoading &&
           errorMessage === null &&
-          orders.length === 0 && <p>No orders yet.</p>}
+          orders.length === 0 && <p>{t('orders.empty')}</p>}
       </div>
 
       {orders.length > 0 && (
@@ -143,23 +146,27 @@ export function OrderHistoryPanel({
               <h3>{order.pizzeriaName}</h3>
               <dl>
                 <div>
-                  <dt>Total</dt>
-                  <dd>{formatPrice(order.total)}</dd>
+                  <dt>{t('confirm.total')}</dt>
+                  <dd>{formatPrice(order.total, t)}</dd>
                 </div>
                 <div>
-                  <dt>Date</dt>
-                  <dd>{formatOrderPlacedAt(order.createdAt)}</dd>
+                  <dt>{t('orders.date')}</dt>
+                  <dd>{formatOrderPlacedAt(order.createdAt, locale)}</dd>
                 </div>
                 <div>
-                  <dt>Status</dt>
-                  <dd>{order.status}</dd>
+                  <dt>{t('confirm.status')}</dt>
+                  <dd>
+                    {order.status === 'placed'
+                      ? t('confirm.statusPlaced')
+                      : order.status}
+                  </dd>
                 </div>
                 <div>
-                  <dt>Fulfillment</dt>
+                  <dt>{t('confirm.fulfillment')}</dt>
                   <dd>
                     {order.fulfillmentType === 'delivery'
-                      ? 'Delivery'
-                      : 'Pickup'}
+                      ? t('checkout.delivery')
+                      : t('checkout.pickup')}
                   </dd>
                 </div>
               </dl>
@@ -168,19 +175,19 @@ export function OrderHistoryPanel({
                   type="button"
                   onClick={() => void handleViewDetails(order.id)}
                 >
-                  {selectedOrderId === order.id ? 'Hide details' : 'View details'}
+                  {selectedOrderId === order.id ? t('orders.hideDetails') : t('orders.viewDetails')}
                 </button>
               </div>
               {selectedOrderId === order.id && (
                 <div className="order-history-details">
-                  {isLoadingDetails && <p>Loading order…</p>}
+                  {isLoadingDetails && <p>{t('confirm.loading')}</p>}
                   {detailsError !== null && (
                     <p role="alert">{detailsError}</p>
                   )}
                   {detailedOrder !== null && (
                     <OrderConfirmation
                       order={detailedOrder}
-                      heading="Order details"
+                      heading={t('orders.details')}
                     />
                   )}
                 </div>

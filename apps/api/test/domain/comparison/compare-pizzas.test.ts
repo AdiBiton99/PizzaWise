@@ -1,10 +1,11 @@
-import type {
-  ComparisonPriority,
-  EtaRange,
-  MatchedNearbyPizza,
-  MatchedPizzaSelection,
-  NearbyPizzeria,
-  Pizzeria
+import {
+  createEtaRange,
+  type ComparisonPriority,
+  type EtaRange,
+  type MatchedNearbyPizza,
+  type MatchedPizzaSelection,
+  type NearbyPizzeria,
+  type Pizzeria
 } from '@pizzawise/shared'
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
@@ -227,6 +228,8 @@ describe('compareNearbyPizzas', () => {
 
     assert.equal(point?.costs.eta, 0)
     assert.equal(range?.costs.eta, 1)
+    assert.deepEqual(range?.nearby.pizzeria.averageEta, eta(40, 50))
+    assert.equal(range?.nearby.pizzeria.averageEta?.minutes, 45)
   })
 
   test('assigns null ETA a cost of 1 when any known ETA exists', () => {
@@ -455,5 +458,5 @@ function nearbyPizzeria (
 }
 
 function eta (minMinutes: number, maxMinutes = minMinutes): EtaRange {
-  return { minMinutes, maxMinutes }
+  return createEtaRange(minMinutes, maxMinutes)
 }

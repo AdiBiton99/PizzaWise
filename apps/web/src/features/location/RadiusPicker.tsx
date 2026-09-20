@@ -1,3 +1,4 @@
+import { useTranslate } from '../../i18n'
 import {
   COMPARISON_RADIUS_OPTIONS,
   radiusOptionLabel,
@@ -10,9 +11,11 @@ interface RadiusPickerProps {
 }
 
 export function RadiusPicker({ radiusKm, onChange }: RadiusPickerProps) {
+  const t = useTranslate()
+
   return (
     <fieldset className="builder-options option-pills">
-      <legend>Search radius</legend>
+      <legend>{t('location.searchRadius')}</legend>
       <ul>
         {COMPARISON_RADIUS_OPTIONS.map((option) => (
           <li key={option}>
@@ -24,7 +27,7 @@ export function RadiusPicker({ radiusKm, onChange }: RadiusPickerProps) {
                 checked={radiusKm === option}
                 onChange={() => onChange(option)}
               />
-              {radiusOptionLabel(option)}
+              {radiusOptionLabel(option, t)}
             </label>
           </li>
         ))}

@@ -2,17 +2,19 @@ import { Link } from 'react-router'
 import { useAppSession } from '../app/AppSession'
 import { WorkflowProgress } from '../app/WorkflowProgress'
 import { PizzaBuilder } from '../features/pizza-builder/PizzaBuilder'
+import { useTranslate } from '../i18n'
 
 export function BuildPage() {
+  const t = useTranslate()
   const { pizza, loadedFavorite, setPizza } = useAppSession()
 
   return (
     <div className="page-stack">
       <WorkflowProgress current="build" />
       <header className="page-intro">
-        <p className="eyebrow">Step 1 of 5</p>
-        <h1>Build your pizza</h1>
-        <p>Choose each part in order. You can go back without losing later picks.</p>
+        <p className="eyebrow">{t('workflow.stepOf', { current: 1, total: 5 })}</p>
+        <h1>{t('build.title')}</h1>
+        <p>{t('build.lead')}</p>
       </header>
       <div className="surface-card">
         <PizzaBuilder
@@ -32,7 +34,7 @@ export function BuildPage() {
             }
           }}
         >
-          Continue to location
+          {t('build.continue')}
         </Link>
       </div>
     </div>

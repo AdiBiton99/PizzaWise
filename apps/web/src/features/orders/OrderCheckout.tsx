@@ -5,13 +5,17 @@ import type {
   PublicUser
 } from '@pizzawise/shared'
 import { type FormEvent, useEffect, useState } from 'react'
+import { useTranslate } from '../../i18n'
 import { AccountRequestError } from '../account/auth-api'
 import { validatePhone } from '../account/account-validation'
 import {
   type GetProfile,
   getProfile as requestProfile
 } from '../account/profile-api'
-import { validateDeliveryAddress } from './order-validation'
+import {
+  MAX_DELIVERY_ADDRESS_LENGTH,
+  validateDeliveryAddress
+} from './order-validation'
 import {
   type CreateOrder,
   OrdersRequestError,
@@ -39,6 +43,7 @@ export function OrderCheckout({
   getProfile = requestProfile,
   createOrder = requestCreate
 }: OrderCheckoutProps) {
+  const t = useTranslate()
   const [phone, setPhone] = useState('')
   const [fulfillmentType, setFulfillmentType] =
     useState<FulfillmentType>('pickup')
@@ -81,14 +86,18 @@ export function OrderCheckout({
 
     const phoneError = validatePhone(phone)
     if (phoneError !== null) {
-      setErrorMessage(phoneError)
+      setErrorMessage(t(phoneError))
       return
     }
 
     if (fulfillmentType === 'delivery') {
       const addressError = validateDeliveryAddress(deliveryAddress)
       if (addressError !== null) {
-        setErrorMessage(addressError)
+        setErrorMessage(
+          addressError === 'validation.deliveryLength'
+            ? t(addressError, { max: MAX_DELIVERY_ADDRESS_LENGTH })
+            : t(addressError)
+        )
         return
       }
     }
@@ -116,7 +125,7 @@ export function OrderCheckout({
       setErrorMessage(
         error instanceof OrdersRequestError
           ? error.message
-          : 'Could not place the order.'
+          : t('checkout.failed')
       )
     } finally {
       setIsSubmitting(false)
@@ -129,10 +138,10 @@ export function OrderCheckout({
       noValidate
       onSubmit={(event) => void handleSubmit(event)}
     >
-      <h4>Order from {pizzeriaName}</h4>
+      <h4>{t('checkout.title', { name: pizzeriaName })}</h4>
 
       <fieldset className="builder-options">
-        <legend>Fulfillment</legend>
+        <legend>{t('checkout.fulfillment')}</legend>
         <ul>
           <li>
             <label>
@@ -144,7 +153,7 @@ export function OrderCheckout({
                 disabled={isSubmitting}
                 onChange={() => setFulfillmentType('pickup')}
               />
-              Pickup
+              {t('checkout.pickup')}
             </label>
           </li>
           <li>
@@ -157,13 +166,13 @@ export function OrderCheckout({
                 disabled={isSubmitting}
                 onChange={() => setFulfillmentType('delivery')}
               />
-              Delivery
+              {t('checkout.delivery')}
             </label>
           </li>
         </ul>
       </fieldset>
 
-      <label htmlFor="order-phone">Phone</label>
+      <label htmlFor="order-phone">{t('checkout.phone')}</label>
       <input
         id="order-phone"
         type="tel"
@@ -175,7 +184,7 @@ export function OrderCheckout({
 
       {fulfillmentType === 'delivery' && (
         <>
-          <label htmlFor="order-delivery-address">Delivery address</label>
+          <label htmlFor="order-delivery-address">{t('checkout.address')}</label>
           <input
             id="order-delivery-address"
             type="text"
@@ -189,7 +198,7 @@ export function OrderCheckout({
       )}
 
       <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Placing order…' : 'Place order'}
+        {isSubmitting ? t('checkout.placing') : t('checkout.place')}
       </button>
 
       {errorMessage !== null && <p role="alert">{errorMessage}</p>}

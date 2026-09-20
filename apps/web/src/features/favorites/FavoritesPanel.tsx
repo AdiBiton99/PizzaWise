@@ -1,11 +1,16 @@
+import { FavoritePizzaSummary } from './FavoritePizzaSummary'
+import { useTranslate } from '../../i18n'
 import {
-  pizzaOptionLabel,
   type FavoritePizza,
   type PizzaConfiguration,
   type PublicUser
 } from '@pizzawise/shared'
 import { type FormEvent, useCallback, useEffect, useState } from 'react'
-import { validateFavoriteName } from './favorite-validation'
+import {
+  MAX_FAVORITE_NAME_LENGTH,
+  MIN_FAVORITE_NAME_LENGTH,
+  validateFavoriteName
+} from './favorite-validation'
 import {
   type CreateFavorite,
   type DeleteFavorite,
@@ -39,6 +44,7 @@ export function FavoritesPanel({
   updateFavorite = requestUpdate,
   deleteFavorite = requestDelete
 }: FavoritesPanelProps) {
+  const t = useTranslate()
   const [favorites, setFavorites] = useState<readonly FavoritePizza[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -68,12 +74,12 @@ export function FavoritesPanel({
       setErrorMessage(
         error instanceof FavoritesRequestError
           ? error.message
-          : 'Could not load favorites.'
+          : t('favorites.loadFailed')
       )
     } finally {
       setIsLoading(false)
     }
-  }, [handleUnauthorized, listFavorites])
+  }, [handleUnauthorized, listFavorites, t])
 
   useEffect(() => {
     let cancelled = false
@@ -96,7 +102,12 @@ export function FavoritesPanel({
 
     const nameError = validateFavoriteName(saveName)
     if (nameError !== null) {
-      setErrorMessage(nameError)
+      setErrorMessage(
+        t(nameError, {
+          min: MIN_FAVORITE_NAME_LENGTH,
+          max: MAX_FAVORITE_NAME_LENGTH
+        })
+      )
       return
     }
 
@@ -116,7 +127,7 @@ export function FavoritesPanel({
       setErrorMessage(
         error instanceof FavoritesRequestError
           ? error.message
-          : 'Could not save the favorite.'
+          : t('favorites.saveFailed')
       )
     } finally {
       setSaveBusy(false)
@@ -143,7 +154,12 @@ export function FavoritesPanel({
 
     const nameError = validateFavoriteName(editName)
     if (nameError !== null) {
-      setErrorMessage(nameError)
+      setErrorMessage(
+        t(nameError, {
+          min: MIN_FAVORITE_NAME_LENGTH,
+          max: MAX_FAVORITE_NAME_LENGTH
+        })
+      )
       return
     }
 
@@ -176,7 +192,7 @@ export function FavoritesPanel({
       setErrorMessage(
         error instanceof FavoritesRequestError
           ? error.message
-          : 'Could not update the favorite.'
+          : t('favorites.updateFailed')
       )
     } finally {
       setItemBusyId(null)
@@ -203,7 +219,7 @@ export function FavoritesPanel({
       setErrorMessage(
         error instanceof FavoritesRequestError
           ? error.message
-          : 'Could not delete the favorite.'
+          : t('favorites.deleteFailed')
       )
     } finally {
       setItemBusyId(null)
@@ -212,10 +228,10 @@ export function FavoritesPanel({
 
   return (
     <section className="favorites-panel" aria-labelledby="favorites-heading" data-user-id={user.id}>
-      <h2 id="favorites-heading">Favorites</h2>
+      <h2 id="favorites-heading">{t('favorites.heading')}</h2>
 
       <form className="account-form" noValidate onSubmit={(event) => void handleSave(event)}>
-        <label htmlFor="favorite-name">Favorite name</label>
+        <label htmlFor="favorite-name">{t('favorites.name')}</label>
         <input
           id="favorite-name"
           type="text"
@@ -225,18 +241,18 @@ export function FavoritesPanel({
           onChange={(event) => setSaveName(event.target.value)}
         />
         <button type="submit" disabled={saveBusy || pizza === null}>
-          {saveBusy ? 'Saving…' : 'Save current pizza'}
+          {saveBusy ? t('favorites.saving') : t('favorites.save')}
         </button>
         {pizza === null && (
-          <p>Complete a pizza to save it.</p>
+          <p>{t('favorites.needPizza')}</p>
         )}
       </form>
 
       <div className="favorites-status" aria-live="polite" aria-busy={isLoading}>
-        {isLoading && <p>Loading favorites…</p>}
+        {isLoading && <p>{t('favorites.loading')}</p>}
         {errorMessage !== null && <p role="alert">{errorMessage}</p>}
         {!isLoading && favorites.length === 0 && errorMessage === null && (
-          <p>No favorites yet.</p>
+          <p>{t('favorites.empty')}</p>
         )}
       </div>
 
@@ -250,7 +266,7 @@ export function FavoritesPanel({
                   noValidate
                   onSubmit={(event) => void handleUpdate(event)}
                 >
-                  <label htmlFor={`favorite-edit-${favorite.id}`}>Name</label>
+                  <label htmlFor={`favorite-edit-${favorite.id}`}>{t('favorites.editName')}</label>
                   <input
                     id={`favorite-edit-${favorite.id}`}
                     type="text"
@@ -268,18 +284,18 @@ export function FavoritesPanel({
                         setReplaceWithCurrent(event.target.checked)
                       }
                     />
-                    Replace with current pizza
+                    {t('favorites.replace')}
                   </label>
                   <div className="builder-actions">
                     <button type="submit" disabled={itemBusyId === favorite.id}>
-                      {itemBusyId === favorite.id ? 'Saving…' : 'Save changes'}
+                      {itemBusyId === favorite.id ? t('favorites.saving') : t('favorites.saveChanges')}
                     </button>
                     <button
                       type="button"
                       disabled={itemBusyId === favorite.id}
                       onClick={() => setEditingId(null)}
                     >
-                      Cancel
+                      {t('favorites.cancel')}
                     </button>
                   </div>
                 </form>
@@ -287,9 +303,10 @@ export function FavoritesPanel({
                 <>
                   <div className="favorite-copy">
                     <h3>{favorite.name}</h3>
-                    <p className="favorite-config">
-                      {formatFavoriteConfiguration(favorite.configuration)}
-                    </p>
+                    <FavoritePizzaSummary
+                      configuration={favorite.configuration}
+                      t={t}
+                    />
                   </div>
                   <div className="builder-actions">
                     <button
@@ -297,14 +314,14 @@ export function FavoritesPanel({
                       disabled={itemBusyId !== null}
                       onClick={() => onLoadFavorite(favorite.configuration)}
                     >
-                      Use
+                      {t('favorites.use')}
                     </button>
                     <button
                       type="button"
                       disabled={itemBusyId !== null}
                       onClick={() => startEdit(favorite)}
                     >
-                      Edit
+                      {t('favorites.edit')}
                     </button>
                     {pendingDeleteId === favorite.id ? (
                       <>
@@ -313,14 +330,14 @@ export function FavoritesPanel({
                           disabled={itemBusyId === favorite.id}
                           onClick={() => void handleDelete(favorite.id)}
                         >
-                          Confirm delete
+                          {t('favorites.confirmDelete')}
                         </button>
                         <button
                           type="button"
                           disabled={itemBusyId === favorite.id}
                           onClick={() => setPendingDeleteId(null)}
                         >
-                          Cancel
+                          {t('favorites.cancel')}
                         </button>
                       </>
                     ) : (
@@ -332,7 +349,7 @@ export function FavoritesPanel({
                           setPendingDeleteId(favorite.id)
                         }}
                       >
-                        Delete
+                        {t('favorites.delete')}
                       </button>
                     )}
                   </div>
@@ -344,17 +361,6 @@ export function FavoritesPanel({
       )}
     </section>
   )
-}
-
-function formatFavoriteConfiguration (
-  configuration: PizzaConfiguration
-): string {
-  const toppings =
-    configuration.toppingTags.length === 0
-      ? 'no toppings'
-      : configuration.toppingTags.map(pizzaOptionLabel).join(', ')
-
-  return `${pizzaOptionLabel(configuration.sizeTag)}, ${pizzaOptionLabel(configuration.crustTag)}, ${pizzaOptionLabel(configuration.sauceTag)}, ${toppings}`
 }
 
 function sortFavorites (

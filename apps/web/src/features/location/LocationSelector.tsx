@@ -1,5 +1,6 @@
 import type { LocationSearchResult, UserLocation } from '@pizzawise/shared'
 import { type FormEvent, type ReactNode, useState } from 'react'
+import { translateEn, type MessageKey, useTranslate } from '../../i18n'
 import { radiusOptionLabel, type ComparisonRadiusKm } from '../comparison/comparison-options'
 import {
   BrowserLocationError,
@@ -8,7 +9,8 @@ import {
   requestBrowserLocation
 } from './browser-geolocation'
 import {
-  currentLocationLabel
+  currentLocationLabel,
+  displayLocationLabel
 } from './format-location-label'
 import {
   LocationSearchError,
@@ -29,12 +31,12 @@ interface LocationSelectorProps {
   readonly children?: ReactNode
 }
 
-const ERROR_MESSAGES: Record<BrowserLocationErrorCode, string> = {
-  'permission-denied': 'Location permission was denied.',
-  unsupported: 'Geolocation is not supported by this browser.',
-  timeout: 'The location request timed out. Please try again.',
-  unavailable: 'Your location is currently unavailable.',
-  unknown: 'We could not determine your location.'
+const ERROR_KEYS: Record<BrowserLocationErrorCode, MessageKey> = {
+  'permission-denied': 'location.permissionDenied',
+  unsupported: 'location.unsupported',
+  timeout: 'location.timeout',
+  unavailable: 'location.unavailable',
+  unknown: 'location.unknown'
 }
 
 export function LocationSelector({
@@ -47,6 +49,7 @@ export function LocationSelector({
   reverseGeocode = reverseGeocodeLocation,
   children
 }: LocationSelectorProps) {
+  const t = useTranslate()
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errorCode, setErrorCode] =
@@ -59,7 +62,9 @@ export function LocationSelector({
 
   const showSummary = location !== null && !isEditing
   const displayLabel =
-    locationLabel ?? (location !== null ? currentLocationLabel(location) : null)
+    location !== null
+      ? displayLocationLabel(location, locationLabel, t)
+      : null
 
   async function handleUseLocation() {
     setIsLoading(true)
@@ -69,7 +74,7 @@ export function LocationSelector({
 
     try {
       const selectedLocation = await requestBrowserLocation(geolocation)
-      let label = currentLocationLabel(selectedLocation)
+      let label = currentLocationLabel(selectedLocation, translateEn)
       try {
         const resolvedLabel = await reverseGeocode(selectedLocation)
         if (resolvedLabel !== null && resolvedLabel.length > 0) {
@@ -95,7 +100,7 @@ export function LocationSelector({
 
     if (query.length === 0) {
       setResults([])
-      setManualMessage('Enter a city or address.')
+      setManualMessage(t('location.enterQuery'))
       return
     }
 
@@ -108,13 +113,13 @@ export function LocationSelector({
       const nextResults = await searchLocations(query)
       setResults(nextResults)
       if (nextResults.length === 0) {
-        setManualMessage('No locations found.')
+        setManualMessage(t('location.noneFound'))
       }
     } catch (error) {
       setManualMessage(
         error instanceof LocationSearchError && error.code === 'rate-limited'
-          ? 'Too many location searches. Please try again later.'
-          : 'Location search failed. Please try again.'
+          ? t('location.rateLimited')
+          : t('location.searchFailed')
       )
     } finally {
       setIsSearching(false)
@@ -133,22 +138,26 @@ export function LocationSelector({
     <section className="location-selector" aria-labelledby="location-heading">
       {showSummary ? (
         <div className="selected-location-summary">
-          <h2 id="location-heading">Your location</h2>
+          <h2 id="location-heading">{t('location.yourLocation')}</h2>
           <p>{displayLabel}</p>
           {radiusKm !== undefined && (
-            <p>Search radius: {radiusOptionLabel(radiusKm)}</p>
+            <p>
+              {t('location.searchRadiusValue', {
+                radius: radiusOptionLabel(radiusKm, t)
+              })}
+            </p>
           )}
           <button
             type="button"
             className="button-secondary"
             onClick={() => setIsEditing(true)}
           >
-            Change location
+            {t('location.change')}
           </button>
         </div>
       ) : (
         <>
-          <h2 id="location-heading">Location</h2>
+          <h2 id="location-heading">{t('location.heading')}</h2>
           <div className="location-layout">
             <div>
               <button
@@ -156,13 +165,13 @@ export function LocationSelector({
                 disabled={isLoading}
                 onClick={() => void handleUseLocation()}
               >
-                {isLoading ? 'Locating…' : 'Use my location'}
+                {isLoading ? t('location.locating') : t('location.useMine')}
               </button>
 
-              <p>or</p>
+              <p>{t('location.or')}</p>
 
               <form onSubmit={(event) => void handleManualSearch(event)}>
-                <label htmlFor="manual-location">City or address</label>
+                <label htmlFor="manual-location">{t('location.cityOrAddress')}</label>
                 <input
                   id="manual-location"
                   type="text"
@@ -171,12 +180,12 @@ export function LocationSelector({
                   onChange={(event) => setManualQuery(event.target.value)}
                 />
                 <button type="submit" disabled={isSearching}>
-                  {isSearching ? 'Searching…' : 'Search'}
+                  {isSearching ? t('location.searching') : t('location.search')}
                 </button>
               </form>
 
               {results.length > 0 && (
-                <ul aria-label="Location results">
+                <ul aria-label={t('location.resultsAria')}>
                   {results.map((result, index) => (
                     <li key={`${result.label}-${index}`}>
                       <button
@@ -196,7 +205,7 @@ export function LocationSelector({
       )}
 
       <div className="location-status" aria-live="polite">
-        {errorCode !== null && <p role="alert">{ERROR_MESSAGES[errorCode]}</p>}
+        {errorCode !== null && <p role="alert">{t(ERROR_KEYS[errorCode])}</p>}
         {manualMessage !== null && <p role="alert">{manualMessage}</p>}
       </div>
     </section>

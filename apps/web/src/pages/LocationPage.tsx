@@ -3,8 +3,10 @@ import { useAppSession } from '../app/AppSession'
 import { WorkflowProgress } from '../app/WorkflowProgress'
 import { LocationSelector } from '../features/location/LocationSelector'
 import { RadiusPicker } from '../features/location/RadiusPicker'
+import { useTranslate } from '../i18n'
 
 export function LocationPage() {
+  const t = useTranslate()
   const { location, locationLabel, radiusKm, setLocation, setRadiusKm } =
     useAppSession()
 
@@ -12,12 +14,9 @@ export function LocationPage() {
     <div className="page-stack">
       <WorkflowProgress current="location" />
       <header className="page-intro">
-        <p className="eyebrow">Step 2 of 5</p>
-        <h1>Where should we search?</h1>
-        <p>
-          Use your current spot or search an address, then choose how far to
-          look. All includes every listed pizzeria, regardless of distance.
-        </p>
+        <p className="eyebrow">{t('workflow.stepOf', { current: 2, total: 5 })}</p>
+        <h1>{t('location.title')}</h1>
+        <p>{t('location.lead')}</p>
       </header>
       <div className="surface-card">
         <LocationSelector
@@ -31,7 +30,7 @@ export function LocationPage() {
       </div>
       <div className="builder-actions">
         <Link className="button-secondary" to="/build">
-          Edit pizza
+          {t('location.editPizza')}
         </Link>
         <Link
           className={location === null ? 'button-primary is-disabled' : 'button-primary'}
@@ -43,7 +42,7 @@ export function LocationPage() {
             }
           }}
         >
-          Continue to compare
+          {t('location.continue')}
         </Link>
       </div>
     </div>

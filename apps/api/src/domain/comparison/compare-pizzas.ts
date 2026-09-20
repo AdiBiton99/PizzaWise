@@ -154,7 +154,7 @@ function representativeEta (eta: EtaRange | null): number | null {
     return null
   }
 
-  return (eta.minMinutes + eta.maxMinutes) / 2
+  return eta.minutes
 }
 
 function etaCost (

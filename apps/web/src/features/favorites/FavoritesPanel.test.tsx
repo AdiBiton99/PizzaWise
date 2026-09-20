@@ -78,6 +78,8 @@ describe('FavoritesPanel', () => {
     })
 
     expect(await screen.findByText('Weeknight')).toBeTruthy()
+    expect(screen.getByText('Medium · Thin · Tomato')).toBeTruthy()
+    expect(screen.queryByText('no toppings')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Use' }))
 
     expect(onLoadFavorite).toHaveBeenCalledWith(PIZZA)

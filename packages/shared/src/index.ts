@@ -31,6 +31,8 @@ export type {
   UserLocation
 } from './domain.js'
 
+export { createEtaRange } from './domain.js'
+
 export {
   CRUST_PROVIDER_MAPPINGS,
   CRUST_TAG_VALUES,

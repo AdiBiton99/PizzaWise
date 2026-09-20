@@ -6,6 +6,7 @@ import type {
   UserLocation
 } from '@pizzawise/shared'
 import { useState } from 'react'
+import { useTranslate, type MessageKey } from '../../i18n'
 import type { ComparePizzas } from './comparison-api'
 import { comparePizzas as requestComparison } from './comparison-api'
 import {
@@ -50,12 +51,12 @@ interface PizzaComparisonPanelProps {
 
 const RANKING_OPTIONS: readonly {
   readonly value: RankingChoice
-  readonly label: string
+  readonly labelKey: MessageKey
 }[] = [
-  { value: 'balanced', label: 'Best overall' },
-  { value: 'price', label: 'Lowest price' },
-  { value: 'distance', label: 'Closest' },
-  { value: 'eta', label: 'Fastest' }
+  { value: 'balanced', labelKey: 'compare.balanced' },
+  { value: 'price', labelKey: 'compare.price' },
+  { value: 'distance', labelKey: 'compare.distance' },
+  { value: 'eta', labelKey: 'compare.eta' }
 ]
 
 export function PizzaComparisonPanel({
@@ -70,6 +71,7 @@ export function PizzaComparisonPanel({
   onChoosePizzeria,
   comparePizzas = requestComparison
 }: PizzaComparisonPanelProps) {
+  const t = useTranslate()
   const [internalRanking, setInternalRanking] = useState<RankingChoice>('balanced')
   const [isLoading, setIsLoading] = useState(false)
   const [internalOutcome, setInternalOutcome] = useState<ComparisonOutcome | null>(
@@ -91,7 +93,7 @@ export function PizzaComparisonPanel({
       : null
 
   const canCompare = location !== null && pizza !== null && !isLoading
-  const missingMessage = missingRequirementsMessage(location, pizza)
+  const missingMessage = missingRequirementsMessage(location, pizza, t)
 
   async function handleCompare() {
     if (location === null || pizza === null || isLoading) {
@@ -121,7 +123,7 @@ export function PizzaComparisonPanel({
         location: requestedLocation,
         pizza: requestedPizza,
         kind: 'error',
-        message: 'Comparison failed. Please try again.'
+        message: t('compare.failed')
       })
     } finally {
       setIsLoading(false)
@@ -143,12 +145,12 @@ export function PizzaComparisonPanel({
 
   return (
     <section className="pizza-comparison" aria-labelledby="comparison-heading">
-      <h2 id="comparison-heading">Compare nearby pizzas</h2>
+      <h2 id="comparison-heading">{t('compare.heading')}</h2>
 
       <fieldset className="builder-options option-pills ranking-toggle">
-        <legend>What&apos;s most important to you?</legend>
+        <legend>{t('compare.priorityLegend')}</legend>
         <ul>
-          {RANKING_OPTIONS.map(({ value, label }) => (
+          {RANKING_OPTIONS.map(({ value, labelKey }) => (
             <li key={value}>
               <label className={ranking === value ? 'is-selected' : undefined}>
                 <input
@@ -158,7 +160,7 @@ export function PizzaComparisonPanel({
                   checked={ranking === value}
                   onChange={() => setRanking(value)}
                 />
-                {label}
+                {t(labelKey)}
               </label>
             </li>
           ))}
@@ -172,7 +174,7 @@ export function PizzaComparisonPanel({
           disabled={!canCompare}
           onClick={() => void handleCompare()}
         >
-          {isLoading ? 'Comparing…' : 'Compare'}
+          {isLoading ? t('compare.comparing') : t('compare.button')}
         </button>
       </div>
 
@@ -189,7 +191,7 @@ export function PizzaComparisonPanel({
       >
         {isLoading && (
           <div className="comparison-state is-loading">
-            <p>Comparing nearby pizzerias…</p>
+            <p>{t('compare.comparingNearby')}</p>
           </div>
         )}
 
@@ -201,33 +203,27 @@ export function PizzaComparisonPanel({
               className="button-primary"
               onClick={() => void handleCompare()}
             >
-              Retry comparison
+              {t('compare.retry')}
             </button>
           </div>
         )}
 
         {!isLoading && incompleteEmpty && (
           <div className="comparison-state is-incomplete">
-            <p>
-              Some nearby pizzerias could not be checked, so we could not finish
-              this comparison.
-            </p>
+            <p>{t('compare.incomplete')}</p>
             <button
               type="button"
               className="button-primary"
               onClick={() => void handleCompare()}
             >
-              Retry comparison
+              {t('compare.retry')}
             </button>
           </div>
         )}
 
         {!isLoading && emptyMatches && (
           <div className="comparison-state is-empty">
-            <p>
-              No nearby pizzeria could match this pizza. Try a larger search
-              radius or change the pizza configuration.
-            </p>
+            <p>{t('compare.empty')}</p>
           </div>
         )}
 
@@ -235,10 +231,10 @@ export function PizzaComparisonPanel({
           <>
             {successOutcome.uncheckedPizzeriaCount > 0 && (
               <p className="comparison-warning">
-                Some nearby pizzerias could not be checked. Try Compare again.
+                {t('compare.partialWarning')}
               </p>
             )}
-            <ol className="comparison-results" aria-label="Ranked pizzerias">
+            <ol className="comparison-results" aria-label={t('compare.rankedAria')}>
               {successOutcome.ranked.map((pizzaResult) => (
                 <li
                   className={
@@ -249,7 +245,7 @@ export function PizzaComparisonPanel({
                   key={`${pizzaResult.rank}-${pizzaResult.nearby.pizzeria.id}`}
                 >
                   {pizzaResult.rank === 1 && (
-                    <p className="result-badge">Top match</p>
+                    <p className="result-badge">{t('compare.topMatch')}</p>
                   )}
                   <p className="result-rank">#{pizzaResult.rank}</p>
                   <h3>
@@ -257,20 +253,24 @@ export function PizzaComparisonPanel({
                   </h3>
                   <dl>
                     <div>
-                      <dt>Price</dt>
-                      <dd>{formatPrice(pizzaResult.total)}</dd>
+                      <dt>{t('compare.priceLabel')}</dt>
+                      <dd>{formatPrice(pizzaResult.total, t)}</dd>
                     </div>
                     <div>
-                      <dt>Distance</dt>
-                      <dd>{formatDistanceKm(pizzaResult.nearby.distanceKm)}</dd>
+                      <dt>{t('compare.distanceLabel')}</dt>
+                      <dd>
+                        {formatDistanceKm(pizzaResult.nearby.distanceKm, t)}
+                      </dd>
                     </div>
                     <div>
-                      <dt>ETA</dt>
-                      <dd>{formatEta(pizzaResult.nearby.pizzeria.averageEta)}</dd>
+                      <dt>{t('compare.etaLabel')}</dt>
+                      <dd>
+                        {formatEta(pizzaResult.nearby.pizzeria.averageEta, t)}
+                      </dd>
                     </div>
                   </dl>
                   {user === null ? (
-                    <p>Sign in to order.</p>
+                    <p>{t('compare.signInToOrder')}</p>
                   ) : (
                     <div className="builder-actions">
                       <button
@@ -280,7 +280,9 @@ export function PizzaComparisonPanel({
                           onChoosePizzeria?.(pizzaResult.nearby.pizzeria.id)
                         }
                       >
-                        Order from {pizzaResult.nearby.pizzeria.name}
+                        {t('compare.orderFrom', {
+                          name: pizzaResult.nearby.pizzeria.name
+                        })}
                       </button>
                     </div>
                   )}
@@ -296,18 +298,19 @@ export function PizzaComparisonPanel({
 
 function missingRequirementsMessage (
   location: UserLocation | null,
-  pizza: PizzaConfiguration | null
+  pizza: PizzaConfiguration | null,
+  t: ReturnType<typeof useTranslate>
 ): string | null {
   if (location === null && pizza === null) {
-    return 'Select a location and complete a pizza to compare.'
+    return t('compare.needBoth')
   }
 
   if (location === null) {
-    return 'Select a location to compare.'
+    return t('compare.needLocation')
   }
 
   if (pizza === null) {
-    return 'Complete a pizza to compare.'
+    return t('compare.needPizza')
   }
 
   return null

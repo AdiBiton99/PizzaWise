@@ -374,7 +374,8 @@ function rankedPizza (): RankedPizza {
         longitude: 34.7806,
         averageEta: {
           minMinutes: 12,
-          maxMinutes: 20
+          maxMinutes: 20,
+          minutes: 16
         }
       },
       distanceKm: 1.23

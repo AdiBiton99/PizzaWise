@@ -16,7 +16,8 @@ const PIZZERIAS: Pizzeria[] = [
     longitude: 34.7806,
     averageEta: {
       minMinutes: 40,
-      maxMinutes: 40
+      maxMinutes: 40,
+      minutes: 40
     }
   }
 ]
@@ -308,7 +309,8 @@ const NEAR_PIZZERIA: Pizzeria = {
   longitude: 34.7806,
   averageEta: {
     minMinutes: 10,
-    maxMinutes: 12
+    maxMinutes: 12,
+    minutes: 11
   }
 }
 
@@ -319,7 +321,8 @@ const FAR_PIZZERIA: Pizzeria = {
   longitude: 34.7806,
   averageEta: {
     minMinutes: 40,
-    maxMinutes: 40
+    maxMinutes: 40,
+    minutes: 40
   }
 }
 

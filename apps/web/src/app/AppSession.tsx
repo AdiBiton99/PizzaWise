@@ -15,6 +15,7 @@ import {
   type ReactNode
 } from 'react'
 import { getCurrentUser } from '../features/account/auth-api'
+import { useTranslate } from '../i18n'
 import type { ComparisonOutcome } from '../features/comparison/PizzaComparisonPanel'
 import {
   DEFAULT_COMPARISON_RADIUS_KM,
@@ -57,6 +58,7 @@ interface AppSessionValue {
 const AppSessionContext = createContext<AppSessionValue | null>(null)
 
 export function AppSessionProvider({ children }: { readonly children: ReactNode }) {
+  const t = useTranslate()
   const [user, setUserState] = useState<PublicUser | null>(null)
   const [sessionStatus, setSessionStatus] = useState<'loading' | 'ready'>(
     'loading'
@@ -100,7 +102,7 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
         setUserState(null)
         setLastPlacedOrder(null)
         setRecentOrders([])
-        setSessionError('Could not restore the current session.')
+        setSessionError(t('account.sessionFailed'))
         setSessionStatus('ready')
       }
     })()
@@ -108,7 +110,7 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
     return () => {
       cancelled = true
     }
-  }, [sessionEpoch])
+  }, [sessionEpoch, t])
 
   const setUser = useCallback((nextUser: PublicUser | null) => {
     setUserState(nextUser)

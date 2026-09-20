@@ -11,6 +11,7 @@ import {
   logoutUser as requestLogout,
   registerUser as requestRegister
 } from './auth-api'
+import { useTranslate, type Translate } from '../../i18n'
 import { AuthForm, type AuthMode } from './AuthForm'
 import { ProfileForm } from './ProfileForm'
 import {
@@ -51,6 +52,7 @@ export function AccountPanel({
   onRetrySession,
   initialAuthMode = 'register'
 }: AccountPanelProps) {
+  const t = useTranslate()
   const [internalSessionStatus, setInternalSessionStatus] = useState<
     'loading' | 'ready'
   >(skipSessionRestore ? 'ready' : 'loading')
@@ -85,13 +87,9 @@ export function AccountPanel({
         return
       }
 
-      setProfileError(
-        error instanceof AccountRequestError
-          ? error.message
-          : 'Could not load the profile.'
-      )
+      setProfileError(accountErrorText(error, t, 'account.profileFailed'))
     }
-  }, [getProfile])
+  }, [getProfile, t])
 
   const restoreSession = useCallback(async () => {
     try {
@@ -107,13 +105,9 @@ export function AccountPanel({
       onUserChangeRef.current(null)
       setProfile(null)
       setInternalSessionStatus('ready')
-      setInternalSessionError(
-        error instanceof AccountRequestError
-          ? error.message
-          : 'Could not restore the current session.'
-      )
+      setInternalSessionError(accountErrorText(error, t, 'account.sessionFailed'))
     }
-  }, [getCurrentUser, loadProfile])
+  }, [getCurrentUser, loadProfile, t])
 
   useEffect(() => {
     if (skipSessionRestore) {
@@ -141,11 +135,7 @@ export function AccountPanel({
         onUserChangeRef.current(null)
         setProfile(null)
         setInternalSessionStatus('ready')
-        setInternalSessionError(
-          error instanceof AccountRequestError
-            ? error.message
-            : 'Could not restore the current session.'
-        )
+        setInternalSessionError(accountErrorText(error, t, 'account.sessionFailed'))
       }
     })()
     return () => {
@@ -178,11 +168,7 @@ export function AccountPanel({
           return
         }
 
-        setProfileError(
-          error instanceof AccountRequestError
-            ? error.message
-            : 'Could not load the profile.'
-        )
+        setProfileError(accountErrorText(error, t, 'account.profileFailed'))
       }
     })()
     return () => {
@@ -208,11 +194,7 @@ export function AccountPanel({
         await loadProfile()
       }
     } catch (error) {
-      setAuthError(
-        error instanceof AccountRequestError
-          ? error.message
-          : 'Account request failed.'
-      )
+      setAuthError(accountErrorText(error, t, 'account.requestFailed'))
     } finally {
       setAuthBusy(false)
     }
@@ -228,11 +210,7 @@ export function AccountPanel({
       setProfile(null)
       setProfileError(null)
     } catch (error) {
-      setAuthError(
-        error instanceof AccountRequestError
-          ? error.message
-          : 'Could not log out.'
-      )
+      setAuthError(accountErrorText(error, t, 'account.logoutFailed'))
     } finally {
       setAuthBusy(false)
     }
@@ -253,11 +231,7 @@ export function AccountPanel({
         return
       }
 
-      setProfileError(
-        error instanceof AccountRequestError
-          ? error.message
-          : 'Could not save the profile.'
-      )
+      setProfileError(accountErrorText(error, t, 'account.saveFailed'))
     } finally {
       setProfileBusy(false)
     }
@@ -265,9 +239,9 @@ export function AccountPanel({
 
   return (
     <section className="account-panel" aria-labelledby="account-heading">
-      <h2 id="account-heading">Account</h2>
+      <h2 id="account-heading">{t('account.heading')}</h2>
 
-      {sessionStatus === 'loading' && <p>Checking account…</p>}
+      {sessionStatus === 'loading' && <p>{t('session.checking')}</p>}
 
       {sessionStatus === 'ready' && sessionError !== null && user === null && (
         <div className="account-status">
@@ -283,7 +257,7 @@ export function AccountPanel({
               void restoreSession()
             }}
           >
-            Retry
+            {t('account.retry')}
           </button>
         </div>
       )}
@@ -302,9 +276,9 @@ export function AccountPanel({
 
       {sessionStatus === 'ready' && user !== null && (
         <div className="account-signed-in">
-          <p>Signed in as {user.email}</p>
+          <p>{t('account.signedInAs', { email: user.email })}</p>
           <button type="button" disabled={authBusy} onClick={() => void handleLogout()}>
-            {authBusy ? 'Working…' : 'Log out'}
+            {authBusy ? t('account.working') : t('account.logout')}
           </button>
           <ProfileForm
             key={profileFormKey}
@@ -320,3 +294,24 @@ export function AccountPanel({
     </section>
   )
 }
+
+function accountErrorText (
+  error: unknown,
+  t: Translate,
+  fallback: 'account.profileFailed' | 'account.sessionFailed' | 'account.requestFailed' | 'account.logoutFailed' | 'account.saveFailed'
+): string {
+  if (error instanceof AccountRequestError) {
+    if (error.code === 'conflict') {
+      return t('auth.emailExists')
+    }
+    if (error.code === 'unauthorized') {
+      return t('auth.invalidCredentials')
+    }
+    if (error.code === 'invalid') {
+      return t('auth.invalidDetails')
+    }
+  }
+
+  return t(fallback)
+}
+

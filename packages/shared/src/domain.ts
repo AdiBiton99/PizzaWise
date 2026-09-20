@@ -28,11 +28,26 @@ export interface Money {
 }
 
 /**
- * A normalized ETA. A single estimate uses the same minimum and maximum.
+ * A normalized ETA.
+ *
+ * `minMinutes` and `maxMinutes` are the original bounds for display.
+ * `minutes` is the ranking value: a point estimate, or the midpoint of a range.
  */
 export interface EtaRange {
   readonly minMinutes: number
   readonly maxMinutes: number
+  readonly minutes: number
+}
+
+export function createEtaRange (
+  minMinutes: number,
+  maxMinutes = minMinutes
+): EtaRange {
+  return {
+    minMinutes,
+    maxMinutes,
+    minutes: (minMinutes + maxMinutes) / 2
+  }
 }
 
 /**

@@ -7,17 +7,19 @@ import {
 } from '../../../src/integrations/pizzeria-api/index.js'
 
 describe('normalizeEta', () => {
-  test('normalizes a numeric ETA to equal bounds', () => {
-    assert.deepEqual(normalizeEta(40), {
-      minMinutes: 40,
-      maxMinutes: 40
+  test('normalizes a numeric ETA to equal bounds and ranking minutes', () => {
+    assert.deepEqual(normalizeEta(30), {
+      minMinutes: 30,
+      maxMinutes: 30,
+      minutes: 30
     })
   })
 
-  test('normalizes an ETA range', () => {
+  test('normalizes an ETA range and uses the midpoint for ranking', () => {
     assert.deepEqual(normalizeEta('40-50'), {
       minMinutes: 40,
-      maxMinutes: 50
+      maxMinutes: 50,
+      minutes: 45
     })
   })
 
@@ -54,7 +56,8 @@ describe('normalizePizzeriasResponse', () => {
         longitude: 34.7806,
         averageEta: {
           minMinutes: 40,
-          maxMinutes: 40
+          maxMinutes: 40,
+          minutes: 40
         }
       }
     ])

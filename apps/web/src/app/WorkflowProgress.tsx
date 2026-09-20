@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { useTranslate, type MessageKey } from '../i18n'
 import { useAppSession } from './AppSession'
 
 export type WorkflowStepId =
@@ -10,14 +11,14 @@ export type WorkflowStepId =
 
 const STEPS: readonly {
   readonly id: WorkflowStepId
-  readonly label: string
+  readonly labelKey: MessageKey
   readonly to: string
 }[] = [
-  { id: 'build', label: 'Build', to: '/build' },
-  { id: 'location', label: 'Location', to: '/location' },
-  { id: 'compare', label: 'Compare', to: '/compare' },
-  { id: 'checkout', label: 'Checkout', to: '/checkout' },
-  { id: 'confirm', label: 'Confirmation', to: '/orders' }
+  { id: 'build', labelKey: 'workflow.build', to: '/build' },
+  { id: 'location', labelKey: 'workflow.location', to: '/location' },
+  { id: 'compare', labelKey: 'workflow.compare', to: '/compare' },
+  { id: 'checkout', labelKey: 'workflow.checkout', to: '/checkout' },
+  { id: 'confirm', labelKey: 'workflow.confirm', to: '/orders' }
 ]
 
 export function WorkflowProgress({
@@ -25,12 +26,13 @@ export function WorkflowProgress({
 }: {
   readonly current: WorkflowStepId
 }) {
+  const t = useTranslate()
   const { pizza, location, checkoutPizzeriaId, comparisonOutcome } =
     useAppSession()
   const currentIndex = STEPS.findIndex((step) => step.id === current)
 
   return (
-    <ol className="workflow-progress" aria-label="Order steps">
+    <ol className="workflow-progress" aria-label={t('workflow.aria')}>
       {STEPS.map((step, index) => {
         const isCurrent = step.id === current
         const reachable = canReachStep(step.id, {
@@ -50,9 +52,9 @@ export function WorkflowProgress({
             aria-current={isCurrent ? 'step' : undefined}
           >
             {reachable && !isCurrent && step.id !== 'confirm' ? (
-              <Link to={step.to}>{`${index + 1}. ${step.label}`}</Link>
+              <Link to={step.to}>{`${index + 1}. ${t(step.labelKey)}`}</Link>
             ) : (
-              <span>{`${index + 1}. ${step.label}`}</span>
+              <span>{`${index + 1}. ${t(step.labelKey)}`}</span>
             )}
           </li>
         )

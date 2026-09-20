@@ -1,4 +1,4 @@
-import type { EtaRange, Pizzeria } from '@pizzawise/shared'
+import { createEtaRange, type EtaRange, type Pizzeria } from '@pizzawise/shared'
 import { PizzeriaApiAdapterError, malformedResponseError } from './adapter-error.js'
 import {
   externalPizzeriasResponseSchema,
@@ -13,10 +13,7 @@ export function normalizeEta (value: ExternalEta): EtaRange | null {
   }
 
   if (typeof value === 'number') {
-    return {
-      minMinutes: value,
-      maxMinutes: value
-    }
+    return createEtaRange(value)
   }
 
   const match = ETA_RANGE_PATTERN.exec(value)
@@ -39,10 +36,7 @@ export function normalizeEta (value: ExternalEta): EtaRange | null {
     )
   }
 
-  return {
-    minMinutes,
-    maxMinutes
-  }
+  return createEtaRange(minMinutes, maxMinutes)
 }
 
 export function normalizePizzeriasResponse (input: unknown): Pizzeria[] {

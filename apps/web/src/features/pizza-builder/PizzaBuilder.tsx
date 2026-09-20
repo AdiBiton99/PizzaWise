@@ -1,9 +1,9 @@
 import {
-  pizzaOptionLabel,
   type DesiredOptionTag,
   type PizzaConfiguration
 } from '@pizzawise/shared'
 import { useState } from 'react'
+import { optionLabel, useTranslate } from '../../i18n'
 import { BuilderStep } from './BuilderStep'
 import {
   CRUST_OPTIONS,
@@ -25,6 +25,7 @@ export function PizzaBuilder({
   initialConfiguration = null,
   onConfigurationCompleted
 }: PizzaBuilderProps) {
+  const t = useTranslate()
   const [stage, setStage] = useState<BuilderStage>(
     initialConfiguration === null ? 'size' : 'complete'
   )
@@ -46,6 +47,10 @@ export function PizzaBuilder({
     (stage === 'crust' && crustTag !== null) ||
     (stage === 'sauce' && sauceTag !== null) ||
     stage === 'toppings'
+
+  function labeled (tags: readonly DesiredOptionTag[]) {
+    return tags.map((tag) => ({ tag, label: optionLabel(t, tag) }))
+  }
 
   function handleContinue() {
     if (!canContinue) {
@@ -116,10 +121,18 @@ export function PizzaBuilder({
     )
   }
 
+  const stepLabels = [
+    t('builder.size'),
+    t('builder.crust'),
+    t('builder.sauce'),
+    t('builder.toppings'),
+    t('builder.ready')
+  ] as const
+
   return (
     <section className="pizza-builder" aria-labelledby="pizza-builder-heading">
-      <h2 id="pizza-builder-heading">Pizza Builder</h2>
-      <ol className="builder-stepper" aria-label="Builder steps">
+      <h2 id="pizza-builder-heading">{t('builder.heading')}</h2>
+      <ol className="builder-stepper" aria-label={t('builder.stepsAria')}>
         {(['size', 'crust', 'sauce', 'toppings', 'complete'] as const).map(
           (item, index) => (
             <li
@@ -127,7 +140,7 @@ export function PizzaBuilder({
               aria-current={stage === item ? 'step' : undefined}
               className={stage === item ? 'is-current' : undefined}
             >
-              {index < 4 ? ['Size', 'Crust', 'Sauce', 'Toppings'][index] : 'Ready'}
+              {stepLabels[index]}
             </li>
           )
         )}
@@ -135,10 +148,10 @@ export function PizzaBuilder({
 
       {stage === 'size' && (
         <BuilderStep
-          legend="Size"
+          legend={t('builder.size')}
           inputType="radio"
           name="size"
-          options={SIZE_OPTIONS}
+          options={labeled(SIZE_OPTIONS)}
           selectedTags={sizeTag === null ? [] : [sizeTag]}
           onToggle={setSizeTag}
         />
@@ -146,10 +159,10 @@ export function PizzaBuilder({
 
       {stage === 'crust' && (
         <BuilderStep
-          legend="Crust"
+          legend={t('builder.crust')}
           inputType="radio"
           name="crust"
-          options={CRUST_OPTIONS}
+          options={labeled(CRUST_OPTIONS)}
           selectedTags={crustTag === null ? [] : [crustTag]}
           onToggle={setCrustTag}
         />
@@ -157,10 +170,10 @@ export function PizzaBuilder({
 
       {stage === 'sauce' && (
         <BuilderStep
-          legend="Sauce"
+          legend={t('builder.sauce')}
           inputType="radio"
           name="sauce"
-          options={SAUCE_OPTIONS}
+          options={labeled(SAUCE_OPTIONS)}
           selectedTags={sauceTag === null ? [] : [sauceTag]}
           onToggle={setSauceTag}
         />
@@ -168,10 +181,10 @@ export function PizzaBuilder({
 
       {stage === 'toppings' && (
         <BuilderStep
-          legend="Toppings"
+          legend={t('builder.toppings')}
           inputType="checkbox"
           name="toppings"
-          options={TOPPING_OPTIONS}
+          options={labeled(TOPPING_OPTIONS)}
           selectedTags={toppingTags}
           onToggle={toggleTopping}
         />
@@ -191,7 +204,7 @@ export function PizzaBuilder({
       <div className="builder-actions">
         {stage !== 'size' && (
           <button type="button" onClick={handleBack}>
-            Back
+            {t('builder.back')}
           </button>
         )}
         {stage !== 'complete' && (
@@ -201,7 +214,7 @@ export function PizzaBuilder({
             disabled={!canContinue}
             onClick={handleContinue}
           >
-            Continue
+            {t('builder.continue')}
           </button>
         )}
       </div>
@@ -214,29 +227,30 @@ function PizzaSummary({
 }: {
   readonly configuration: PizzaConfiguration
 }) {
+  const t = useTranslate()
   const toppingSummary =
     configuration.toppingTags.length === 0
-      ? 'None'
-      : configuration.toppingTags.map(pizzaOptionLabel).join(', ')
+      ? t('builder.none')
+      : configuration.toppingTags.map((tag) => optionLabel(t, tag)).join(', ')
 
   return (
     <div className="pizza-summary">
-      <h3>Your pizza</h3>
+      <h3>{t('builder.yourPizza')}</h3>
       <dl>
         <div>
-          <dt>Size</dt>
-          <dd>{pizzaOptionLabel(configuration.sizeTag)}</dd>
+          <dt>{t('builder.size')}</dt>
+          <dd>{optionLabel(t, configuration.sizeTag)}</dd>
         </div>
         <div>
-          <dt>Crust</dt>
-          <dd>{pizzaOptionLabel(configuration.crustTag)}</dd>
+          <dt>{t('builder.crust')}</dt>
+          <dd>{optionLabel(t, configuration.crustTag)}</dd>
         </div>
         <div>
-          <dt>Sauce</dt>
-          <dd>{pizzaOptionLabel(configuration.sauceTag)}</dd>
+          <dt>{t('builder.sauce')}</dt>
+          <dd>{optionLabel(t, configuration.sauceTag)}</dd>
         </div>
         <div>
-          <dt>Toppings</dt>
+          <dt>{t('builder.toppings')}</dt>
           <dd>{toppingSummary}</dd>
         </div>
       </dl>

@@ -91,7 +91,8 @@ describe('PizzeriaApiClient requests', () => {
         longitude: 34.7806,
         averageEta: {
           minMinutes: 40,
-          maxMinutes: 50
+          maxMinutes: 50,
+          minutes: 45
         }
       }
     ])

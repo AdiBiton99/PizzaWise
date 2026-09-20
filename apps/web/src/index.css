@@ -27,6 +27,15 @@
   box-sizing: border-box;
 }
 
+html[lang='he'] {
+  --sans: 'Assistant', 'Nunito', system-ui, sans-serif;
+  --heading: 'Assistant', 'Fraunces', Georgia, serif;
+}
+
+html[lang='he'] .eyebrow {
+  letter-spacing: 0.08em;
+}
+
 body {
   margin: 0;
 }
@@ -180,8 +189,38 @@ textarea {
   gap: 0.3rem 0.15rem;
 }
 
-.auth-actions {
+.header-tools {
   grid-area: auth;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.language-switcher {
+  display: flex;
+  gap: 0.15rem;
+  padding: 0.15rem;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+}
+
+.language-switcher button {
+  min-height: 2.4rem;
+  padding: 0.35rem 0.8rem;
+  border: 0;
+  background: transparent;
+  font-size: 0.92rem;
+}
+
+.language-switcher button[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.auth-actions {
   display: flex;
   flex-wrap: nowrap;
   gap: 0.6rem;
@@ -660,6 +699,12 @@ dd {
 .favorite-config {
   color: var(--muted);
   line-height: 1.45;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.favorite-config p {
+  margin: 0;
 }
 
 .location-selector ul[aria-label='Location results'] {
@@ -701,7 +746,7 @@ dd {
 
   .hero-copy {
     max-width: none;
-    padding-right: 1rem;
+    padding-inline-end: 1rem;
   }
 
   .page-banner {
@@ -835,7 +880,7 @@ dd {
 
   .hero-copy {
     gap: 0.7rem;
-    padding-right: 0.75rem;
+    padding-inline-end: 0.75rem;
   }
 
   .hero-copy p {
@@ -889,6 +934,11 @@ dd {
   .auth-actions {
     width: 100%;
     flex-wrap: wrap;
+  }
+
+  .header-tools {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .auth-actions a {

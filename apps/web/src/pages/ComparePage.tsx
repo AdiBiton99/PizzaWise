@@ -1,12 +1,13 @@
-import { pizzaOptionLabel } from '@pizzawise/shared'
 import { Link, useNavigate } from 'react-router'
 import { useAppSession } from '../app/AppSession'
 import { WorkflowProgress } from '../app/WorkflowProgress'
 import { PizzaComparisonPanel } from '../features/comparison/PizzaComparisonPanel'
 import { radiusOptionLabel } from '../features/comparison/comparison-options'
-import { currentLocationLabel } from '../features/location/format-location-label'
+import { displayLocationLabel } from '../features/location/format-location-label'
+import { optionLabel, useTranslate } from '../i18n'
 
 export function ComparePage() {
+  const t = useTranslate()
   const {
     user,
     location,
@@ -27,39 +28,43 @@ export function ComparePage() {
 
   const toppingSummary =
     pizza.toppingTags.length === 0
-      ? 'no toppings'
-      : pizza.toppingTags.map(pizzaOptionLabel).join(', ')
+      ? t('compare.noToppings')
+      : pizza.toppingTags.map((tag) => optionLabel(t, tag)).join(', ')
 
-  const searchLabel = locationLabel ?? currentLocationLabel(location)
+  const searchLabel = displayLocationLabel(location, locationLabel, t)
 
   return (
     <div className="page-stack compare-page">
       <WorkflowProgress current="compare" />
       <header className="page-intro">
-        <p className="eyebrow">Step 3 of 5</p>
-        <h1>Compare nearby pies</h1>
-        <p>
-          Rank shops for this pizza. Order jumps to a focused checkout—log in
-          first if you have not already.
-        </p>
+        <p className="eyebrow">{t('workflow.stepOf', { current: 3, total: 5 })}</p>
+        <h1>{t('compare.title')}</h1>
+        <p>{t('compare.lead')}</p>
       </header>
-      <section className="surface-card workflow-summary compact-summary" aria-label="Selected pizza and location">
+      <section
+        className="surface-card workflow-summary compact-summary"
+        aria-label={t('compare.summaryAria')}
+      >
         <div>
-          <h2>Your pizza</h2>
+          <h2>{t('compare.yourPizza')}</h2>
           <p>
-            {pizzaOptionLabel(pizza.sizeTag)}, {pizzaOptionLabel(pizza.crustTag)},{' '}
-            {pizzaOptionLabel(pizza.sauceTag)}, {toppingSummary}
+            {optionLabel(t, pizza.sizeTag)}, {optionLabel(t, pizza.crustTag)},{' '}
+            {optionLabel(t, pizza.sauceTag)}, {toppingSummary}
           </p>
           <Link className="button-secondary" to="/build">
-            Edit pizza
+            {t('location.editPizza')}
           </Link>
         </div>
         <div>
-          <h2>Search area</h2>
+          <h2>{t('compare.searchArea')}</h2>
           <p>{searchLabel}</p>
-          <p>Search radius: {radiusOptionLabel(radiusKm)}</p>
+          <p>
+            {t('location.searchRadiusValue', {
+              radius: radiusOptionLabel(radiusKm, t)
+            })}
+          </p>
           <Link className="button-secondary" to="/location">
-            Change location
+            {t('location.change')}
           </Link>
         </div>
       </section>
@@ -82,7 +87,7 @@ export function ComparePage() {
       {user === null && (
         <div className="builder-actions">
           <Link className="button-primary" to="/account?mode=login">
-            Log in to order
+            {t('compare.loginToOrder')}
           </Link>
         </div>
       )}

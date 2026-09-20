@@ -2,8 +2,10 @@ import { Link, Navigate, useNavigate } from 'react-router'
 import { useAppSession } from '../app/AppSession'
 import { WorkflowProgress } from '../app/WorkflowProgress'
 import { OrderCheckout } from '../features/orders/OrderCheckout'
+import { useTranslate } from '../i18n'
 
 export function CheckoutPage() {
+  const t = useTranslate()
   const {
     user,
     sessionStatus,
@@ -17,7 +19,7 @@ export function CheckoutPage() {
   const navigate = useNavigate()
 
   if (sessionStatus === 'loading') {
-    return <p>Checking account…</p>
+    return <p>{t('session.checking')}</p>
   }
 
   if (user === null) {
@@ -51,9 +53,9 @@ export function CheckoutPage() {
     <div className="page-stack">
       <WorkflowProgress current="checkout" />
       <header className="page-intro">
-        <p className="eyebrow">Step 4 of 5</p>
-        <h1>Order from {ranked.nearby.pizzeria.name}</h1>
-        <p>We’ll re-fetch the live menu and price before placing this order.</p>
+        <p className="eyebrow">{t('workflow.stepOf', { current: 4, total: 5 })}</p>
+        <h1>{t('checkout.title', { name: ranked.nearby.pizzeria.name })}</h1>
+        <p>{t('checkout.lead')}</p>
       </header>
       <div className="surface-card checkout-card">
         <OrderCheckout
@@ -69,7 +71,7 @@ export function CheckoutPage() {
         />
       </div>
       <Link className="button-secondary" to="/compare">
-        Back to comparison
+        {t('checkout.back')}
       </Link>
     </div>
   )

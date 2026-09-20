@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router'
 import { useAppSession } from '../app/AppSession'
 import { FavoritesPanel } from '../features/favorites/FavoritesPanel'
+import { useTranslate } from '../i18n'
 
 export function FavoritesPage() {
+  const t = useTranslate()
   const { user, pizza, setUser, loadFavorite } = useAppSession()
   const navigate = useNavigate()
 
@@ -13,9 +15,9 @@ export function FavoritesPage() {
   return (
     <div className="page-stack">
       <header className="page-intro">
-        <p className="eyebrow">Saved pies</p>
-        <h1>Favorites</h1>
-        <p>Reuse a saved pizza in the builder, or replace it with the one you just made.</p>
+        <p className="eyebrow">{t('favorites.eyebrow')}</p>
+        <h1>{t('favorites.title')}</h1>
+        <p>{t('favorites.lead')}</p>
       </header>
       <div className="surface-card">
         <FavoritesPanel
