@@ -8,6 +8,7 @@ import { AccountPage } from './pages/AccountPage'
 import { BuildPage } from './pages/BuildPage'
 import { CheckoutPage } from './pages/CheckoutPage'
 import { ComparePage } from './pages/ComparePage'
+import { FavoriteComposePage } from './pages/FavoriteComposePage'
 import { FavoritesPage } from './pages/FavoritesPage'
 import { HomePage } from './pages/HomePage'
 import { LocationPage } from './pages/LocationPage'
@@ -46,6 +47,8 @@ function App() {
             <Route element={<RequireAuth />}>
               <Route path="/order/:id" element={<OrderConfirmationPage />} />
               <Route path="/favorites" element={<FavoritesPage />} />
+              <Route path="/favorites/new" element={<FavoriteComposePage />} />
+              <Route path="/favorites/:id/edit" element={<FavoriteComposePage />} />
               <Route path="/orders" element={<OrdersPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

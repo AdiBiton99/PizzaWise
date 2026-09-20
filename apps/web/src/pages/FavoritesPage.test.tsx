@@ -5,6 +5,7 @@ import { MemoryRouter, Outlet, Route, Routes, useLocation } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AppSessionProvider, useAppSession } from '../app/AppSession'
 import { FavoritesPage } from './FavoritesPage'
+import { FavoriteComposePage } from './FavoriteComposePage'
 import { BuildPage } from './BuildPage'
 
 const USER = {
@@ -48,16 +49,30 @@ vi.mock('../features/favorites/favorites-api', () => ({
 afterEach(cleanup)
 
 describe('FavoritesPage', () => {
-  it('starts a blank pizza builder from Add pizza', async () => {
+  it('opens a blank favorites-mode builder from Add pizza', async () => {
     renderFavoritesApp()
 
     fireEvent.click(await screen.findByRole('button', { name: 'Add pizza' }))
 
-    expect(screen.getByTestId('pathname').textContent).toBe('/build')
+    expect(screen.getByTestId('pathname').textContent).toBe('/favorites/new')
     expect(await screen.findByRole('group', { name: 'Size' })).toBeTruthy()
-    expect(screen.getByTestId('pizza').textContent).toBe('no')
-    expect(screen.getByTestId('favorite').textContent).toBe('no')
+    expect(screen.getByRole('heading', { name: 'Add a favorite' })).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Continue to location' })).toBeNull()
+    expect(screen.getByTestId('pizza').textContent).toBe('yes')
     expect(screen.getByTestId('location').textContent).toBe('Tel Aviv')
+  })
+
+  it('opens the favorite editor from Edit', async () => {
+    renderFavoritesApp()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
+
+    expect(screen.getByTestId('pathname').textContent).toBe(
+      `/favorites/${FAVORITE.id}/edit`
+    )
+    expect(await screen.findByRole('heading', { name: 'Edit favorite' })).toBeTruthy()
+    expect(screen.queryByLabelText('Replace with current pizza')).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Continue to location' })).toBeNull()
   })
 })
 
@@ -92,6 +107,8 @@ function SeededFavoritesRouter() {
       <Routes>
         <Route element={<PathReporter />}>
           <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/favorites/new" element={<FavoriteComposePage />} />
+          <Route path="/favorites/:id/edit" element={<FavoriteComposePage />} />
           <Route path="/build" element={<BuildPage />} />
         </Route>
       </Routes>
@@ -107,9 +124,6 @@ function PathReporter() {
     <>
       <div data-testid="pathname">{location.pathname}</div>
       <div data-testid="pizza">{session.pizza === null ? 'no' : 'yes'}</div>
-      <div data-testid="favorite">
-        {session.loadedFavorite === null ? 'no' : 'yes'}
-      </div>
       <div data-testid="location">{session.locationLabel ?? ''}</div>
       <Outlet />
     </>

@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router'
+import type { FavoritePizza } from '@pizzawise/shared'
 import { useAppSession } from '../app/AppSession'
 import { FavoritesPanel } from '../features/favorites/FavoritesPanel'
 import { useTranslate } from '../i18n'
 
 export function FavoritesPage() {
   const t = useTranslate()
-  const { user, pizza, setUser, loadFavorite, startNewPizza } = useAppSession()
+  const { user, setUser, loadFavorite } = useAppSession()
   const navigate = useNavigate()
 
   if (user === null) {
@@ -23,8 +24,7 @@ export function FavoritesPage() {
             type="button"
             className="button-secondary"
             onClick={() => {
-              startNewPizza()
-              void navigate('/build')
+              void navigate('/favorites/new')
             }}
           >
             {t('favorites.addPizza')}
@@ -35,11 +35,13 @@ export function FavoritesPage() {
         <FavoritesPanel
           key={user.id}
           user={user}
-          pizza={pizza}
           onUserChange={setUser}
           onLoadFavorite={(configuration) => {
             loadFavorite(configuration)
             void navigate('/build')
+          }}
+          onEditFavorite={(favorite: FavoritePizza) => {
+            void navigate(`/favorites/${favorite.id}/edit`)
           }}
         />
       </div>
