@@ -140,7 +140,6 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
         ? current
         : [order, ...current]
     )
-    setCheckoutPizzeriaId(null)
   }, [])
 
   const value = useMemo<AppSessionValue>(
