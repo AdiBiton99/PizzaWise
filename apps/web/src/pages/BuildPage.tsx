@@ -6,7 +6,7 @@ import { useTranslate } from '../i18n'
 
 export function BuildPage() {
   const t = useTranslate()
-  const { pizza, loadedFavorite, setPizza } = useAppSession()
+  const { pizza, loadedFavorite, pizzaBuilderKey, setPizza } = useAppSession()
 
   return (
     <div className="page-stack">
@@ -18,7 +18,7 @@ export function BuildPage() {
       </header>
       <div className="surface-card">
         <PizzaBuilder
-          key={loadedFavorite?.nonce ?? 0}
+          key={loadedFavorite?.nonce ?? pizzaBuilderKey}
           initialConfiguration={loadedFavorite?.configuration ?? pizza}
           onConfigurationCompleted={setPizza}
         />

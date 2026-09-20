@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppHeader } from '../app/AppLayout'
 import { HomePage } from '../pages/HomePage'
-import { he } from './messages'
+import { en, he } from './messages'
 import {
   LOCALE_STORAGE_KEY,
   LocaleProvider
@@ -67,6 +67,8 @@ describe('localization', () => {
     expect(screen.queryByText('פיצה מהשכונה, בלי כאב ראש')).toBeNull()
     expect(screen.getByRole('heading', { name: 'איך PizzaWise עובדת' })).toBeTruthy()
     expect(screen.queryByText(/פיצהוויז/)).toBeNull()
+    expect(document.documentElement.dir).toBe('rtl')
+    expect(screen.getByRole('banner').getAttribute('dir')).toBe('ltr')
   })
 
   it('persists the selected language across remounts', () => {
@@ -101,6 +103,12 @@ describe('localization', () => {
     expect(document.documentElement.dir).toBe('ltr')
     expect(localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('en')
     expect(screen.getByRole('link', { name: 'Home' })).toBeTruthy()
+  })
+
+  it('uses pizza wording instead of pie in English copy', () => {
+    expect(en['compare.title']).toBe('Compare nearby pizzas')
+    expect(en['favorites.eyebrow']).toBe('Saved pizzas')
+    expect(JSON.stringify(en)).not.toMatch(/\bpie[s]?\b/i)
   })
 
   it('keeps the PizzaWise brand name untranslated in Hebrew copy', () => {

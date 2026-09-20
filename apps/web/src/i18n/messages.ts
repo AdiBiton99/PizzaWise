@@ -88,7 +88,7 @@ export const en = {
   'radius.all': 'All',
   'radius.km': '{km} km',
 
-  'compare.title': 'Compare nearby pies',
+  'compare.title': 'Compare nearby pizzas',
   'compare.lead':
     'Rank shops for this pizza. Order jumps to a focused checkout—log in first if you have not already.',
   'compare.summaryAria': 'Selected pizza and location',
@@ -160,6 +160,10 @@ export const en = {
   'confirm.pizza': 'Pizza',
   'confirm.status': 'Status',
   'confirm.statusPlaced': 'placed',
+  'confirm.addFavorite': 'Add to favorites',
+  'confirm.saveFavorite': 'Save favorite',
+  'confirm.favoriteSaved': 'Saved to favorites.',
+  'confirm.favoriteFailed': 'Could not save the favorite.',
 
   'orders.eyebrow': 'Past orders',
   'orders.title': 'Order history',
@@ -176,7 +180,7 @@ export const en = {
   'orders.hideDetails': 'Hide details',
   'orders.details': 'Order details',
 
-  'favorites.eyebrow': 'Saved pies',
+  'favorites.eyebrow': 'Saved pizzas',
   'favorites.title': 'Favorites',
   'favorites.lead':
     'Reuse a saved pizza in the builder, or replace it with the one you just made.',
@@ -199,6 +203,7 @@ export const en = {
   'favorites.edit': 'Edit',
   'favorites.delete': 'Delete',
   'favorites.confirmDelete': 'Confirm delete',
+  'favorites.addPizza': 'Add pizza',
 
   'account.eyebrow': 'Your kitchen profile',
   'account.eyebrowGuest': 'Your kitchen profile',
@@ -474,6 +479,10 @@ export const he: { readonly [K in MessageKey]: string } = {
   'confirm.pizza': 'פיצה',
   'confirm.status': 'סטטוס',
   'confirm.statusPlaced': 'בוצעה',
+  'confirm.addFavorite': 'הוספה למועדפים',
+  'confirm.saveFavorite': 'שמירת מועדף',
+  'confirm.favoriteSaved': 'נשמר במועדפים.',
+  'confirm.favoriteFailed': 'לא הצלחנו לשמור את המועדף.',
 
   'orders.eyebrow': 'הזמנות קודמות',
   'orders.title': 'היסטוריית הזמנות',
@@ -512,6 +521,7 @@ export const he: { readonly [K in MessageKey]: string } = {
   'favorites.edit': 'עריכה',
   'favorites.delete': 'מחיקה',
   'favorites.confirmDelete': 'אישור מחיקה',
+  'favorites.addPizza': 'הוספת פיצה',
 
   'account.eyebrow': 'חשבון',
   'account.eyebrowGuest': 'חשבון',

@@ -5,7 +5,7 @@ import { useTranslate } from '../i18n'
 
 export function FavoritesPage() {
   const t = useTranslate()
-  const { user, pizza, setUser, loadFavorite } = useAppSession()
+  const { user, pizza, setUser, loadFavorite, startNewPizza } = useAppSession()
   const navigate = useNavigate()
 
   if (user === null) {
@@ -18,6 +18,18 @@ export function FavoritesPage() {
         <p className="eyebrow">{t('favorites.eyebrow')}</p>
         <h1>{t('favorites.title')}</h1>
         <p>{t('favorites.lead')}</p>
+        <div className="builder-actions">
+          <button
+            type="button"
+            className="button-secondary"
+            onClick={() => {
+              startNewPizza()
+              void navigate('/build')
+            }}
+          >
+            {t('favorites.addPizza')}
+          </button>
+        </div>
       </header>
       <div className="surface-card">
         <FavoritesPanel

@@ -37,6 +37,7 @@ interface AppSessionValue {
   readonly locationLabel: string | null
   readonly pizza: PizzaConfiguration | null
   readonly loadedFavorite: LoadedFavorite | null
+  readonly pizzaBuilderKey: number
   readonly radiusKm: ComparisonRadiusKm
   readonly ranking: RankingChoice
   readonly comparisonOutcome: ComparisonOutcome | null
@@ -53,6 +54,8 @@ interface AppSessionValue {
   readonly setComparisonOutcome: (outcome: ComparisonOutcome | null) => void
   readonly setCheckoutPizzeriaId: (id: string | null) => void
   readonly recordPlacedOrder: (order: Order) => void
+  readonly startNewPizza: () => void
+  readonly resetOrderFlow: () => void
 }
 
 const AppSessionContext = createContext<AppSessionValue | null>(null)
@@ -71,6 +74,7 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
   const [loadedFavorite, setLoadedFavorite] = useState<LoadedFavorite | null>(
     null
   )
+  const [pizzaBuilderKey, setPizzaBuilderKey] = useState(0)
   const [radiusKm, setRadiusKm] = useState<ComparisonRadiusKm>(
     DEFAULT_COMPARISON_RADIUS_KM
   )
@@ -133,6 +137,22 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
     }))
   }, [])
 
+  const startNewPizza = useCallback(() => {
+    setPizza(null)
+    setLoadedFavorite(null)
+    setPizzaBuilderKey((key) => key + 1)
+  }, [])
+
+  const resetOrderFlow = useCallback(() => {
+    startNewPizza()
+    setLocationState(null)
+    setLocationLabel(null)
+    setComparisonOutcome(null)
+    setCheckoutPizzeriaId(null)
+    setRadiusKm(DEFAULT_COMPARISON_RADIUS_KM)
+    setRanking('balanced')
+  }, [startNewPizza])
+
   const recordPlacedOrder = useCallback((order: Order) => {
     setLastPlacedOrder(order)
     setRecentOrders((current) =>
@@ -151,6 +171,7 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
       locationLabel,
       pizza,
       loadedFavorite,
+      pizzaBuilderKey,
       radiusKm,
       ranking,
       comparisonOutcome,
@@ -169,7 +190,9 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
       setRanking,
       setComparisonOutcome,
       setCheckoutPizzeriaId,
-      recordPlacedOrder
+      recordPlacedOrder,
+      startNewPizza,
+      resetOrderFlow
     }),
     [
       user,
@@ -179,6 +202,7 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
       locationLabel,
       pizza,
       loadedFavorite,
+      pizzaBuilderKey,
       radiusKm,
       ranking,
       comparisonOutcome,
@@ -188,7 +212,9 @@ export function AppSessionProvider({ children }: { readonly children: ReactNode 
       setUser,
       setLocation,
       loadFavorite,
-      recordPlacedOrder
+      recordPlacedOrder,
+      startNewPizza,
+      resetOrderFlow
     ]
   )
 

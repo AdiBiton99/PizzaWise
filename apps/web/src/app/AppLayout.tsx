@@ -7,7 +7,7 @@ export function AppHeader() {
   const t = useTranslate()
 
   return (
-    <header className="app-header">
+    <header className="app-header" dir="ltr">
       <NavLink className="brand" to="/">
         PizzaWise
       </NavLink>
